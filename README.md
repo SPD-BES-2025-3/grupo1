@@ -24,3 +24,10 @@ Repositório do grupo 1
 -   **`repositories/`**: Camada de acesso a dados. Contém a lógica de baixo nível para interagir diretamente com os bancos de dados (ex: `pymongo` para fazer queries).
 -   **`services/`**: Camada de serviço (lógica de negócio). Orquestra as operações, utilizando os repositórios e outros serviços para executar tarefas complexas (ex: `IndexingService` usa o repositório e o serviço de embedding).
 -   **`routers/`**: Define os endpoints (rotas) da API. Cada arquivo agrupa endpoints relacionados (ex: `articles.py` para tudo relacionado a artigos), mantendo o `main.py` limpo e organizado.
+
+## Diagramas
+
+### Diagrama de Eventos
+
+![Diagrama de Eventos](DiagramaEventos.svg)
+
