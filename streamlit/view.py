@@ -42,14 +42,14 @@ def get_llm_response(prompt: str) -> str:
     
     return random.choice(mock_responses)
 
-st.set_page_config(page_title="Meu Gemini", page_icon="🤖")
+st.set_page_config(page_title="Chat Dakila", page_icon="🤖")
 
 st.title("Dakila IA")
-st.caption("Interface de comunicação para a Dakila IA")
+st.caption("Converse com a Dakila IA")
 
 if "messages" not in st.session_state:
     st.session_state.messages = [
-        {"role": "assistant", "content": "Olá! Como posso te ajudar hoje?"}
+        {"role": "assistant", "content": "Seja bem‑vindo! Em que posso ajudar?"}
     ]
 
 for message in st.session_state.messages:
