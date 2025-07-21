@@ -27,7 +27,13 @@ Repositório do grupo 1
 
 ## Diagramas
 
+### Diagrama de Classes
+
+![Diagrama de Classes](Diagramas/DiagramaClasses.png)
+
 ### Diagrama de Eventos
 
-![Diagrama de Eventos](DiagramaEventos.svg)
+![Diagrama de Eventos](Diagramas/DiagramaEventos.svg)
+
+
 
