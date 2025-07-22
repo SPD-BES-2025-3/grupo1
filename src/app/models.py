@@ -1,14 +1,21 @@
-from pydantic import BaseModel, Field
-from typing import Optional, List
-from uuid import UUID, uuid4
+from bson import ObjectId
+from pydantic import Field
 
-class Article(BaseModel):
-    id: UUID = Field(default_factory=uuid4, alias="_id")
-    title: str
-    url: str
-    content: str
-    summary: Optional[str] = None
-    keywords: Optional[List[str]] = None
+class PyObjectId(ObjectId):
+    @classmethod
+    def _get_validators_(cls):
+        yield cls.validate
 
-    class Config:
-        allow_population_by_field_name = True
+    @classmethod
+    def validate(cls, v, _):
+        if not ObjectId.is_valid(v):
+            raise ValueError("Invalid objectid")
+        return ObjectId(v)
+
+    @classmethod
+    def _get_pydantic_json_schema_(cls, field_schema):
+        field_schema.update(type="string")
+        
+# E nos seus modelos InDB, você usa assim:
+class CidadeInDB(CidadeSchema):
+    id: PyObjectId = Field(alias="_id") # O alias mapeia o "_id" do Mongo para o "id" do Pydantic
