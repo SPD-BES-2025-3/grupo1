@@ -2,7 +2,7 @@ import pytest
 from fastapi.testclient import TestClient
 from fastapi import status
 from main import app  # Your main FastAPI app instance
-from app.models import Article
+from app.models import Article, City, State
 from app.routers.articles import router, get_repository
 from unittest.mock import MagicMock
 from app.database import get_chroma_repo, get_mongo_repo
@@ -15,8 +15,10 @@ def client():
     return TestClient(app)
 
 @pytest.fixture
-def fake_article():
-    return Article(title="Test", content="Something", author="Me")
+def fake_article() -> Article:
+    city = City(name="Goiânia", state=State.GO)
+    article = Article(title="Test", content="Something", author="Author", city=city)
+    return article
 
 @pytest.fixture
 def mock_repo(fake_article):
