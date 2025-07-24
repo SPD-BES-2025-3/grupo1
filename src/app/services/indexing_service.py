@@ -1,6 +1,6 @@
-from .services.embedding_service import EmbeddingService
-from .repositories.chroma_repository import ChromaRepository
-from .models import Article
+from .embedding_service import EmbeddingService
+from ..repositories.chroma_repository import ChromaRepository
+from ..models import Article
 from typing import List
 
 class IndexingService:
