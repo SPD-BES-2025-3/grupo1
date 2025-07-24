@@ -20,3 +20,7 @@ app.include_router(search.router)
 def read_root():
     """Endpoint raiz para verificar se a API está no ar."""
     return {"message": "Bem-vindo à API de Busca Semântica. Acesse /docs para a documentação interativa."}
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run("main:app", host="0.0.0.0", port=8181, reload=True)
