@@ -10,7 +10,7 @@ class MongoDBRepository:
         self.collection = self.db.articles
 
     def add_article(self, article: Article) -> str:
-        article_dict = article.dict(exclude={'id'})
+        article_dict = article.model_dump(exclude={'id'})
         result = self.collection.insert_one(article_dict)
         return str(result.inserted_id)
 
@@ -35,7 +35,7 @@ class MongoDBRepository:
 
     def update_article(self, article_id: str, article: Article) -> bool:
         try:
-            article_dict = article.dict(exclude={'id'})
+            article_dict = article.model_dump(exclude={'id'})
             result = self.collection.update_one(
                 {"_id": ObjectId(article_id)},
                 {"$set": article_dict}
