@@ -4,3 +4,4 @@ pymongo
 pydantic
 chromadb
 sentence-transformers
+
