@@ -1,6 +1,8 @@
+from bson import ObjectId
 import pytest
 from fastapi.testclient import TestClient
 from fastapi import status
+from app.repositories.mongo_repository import ArticleWithCity
 from main import app  # Your main FastAPI app instance
 from app.models import Article, City, State
 from app.routers.articles import router, get_repository
@@ -15,9 +17,9 @@ def client():
     return TestClient(app)
 
 @pytest.fixture
-def fake_article() -> Article:
+def fake_article() -> ArticleWithCity:
     city = City(name="Goiânia", state=State.GO)
-    article = Article(title="Test", content="Something", author="Author", city=city)
+    article = ArticleWithCity(_id="123", title="Test", content="Something", author="Author", city=city)
     return article
 
 @pytest.fixture
@@ -67,7 +69,7 @@ def test_delete_article(client):
     response = client.delete("/articles/123")
     assert response.status_code == status.HTTP_200_OK
 
-def test_index_articles(client):
+def test_index_articles(client, mock_repo):
     response = client.post("/articles/index")
     assert response.status_code == status.HTTP_200_OK
     assert response.json()["message"] == "Articles indexed successfully"
