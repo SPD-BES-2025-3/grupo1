@@ -1,6 +1,7 @@
-from .services.embedding_service import EmbeddingService
-from .repositories.chroma_repository import ChromaRepository
-from .models import Article
+from app.repositories.mongo_repository import ArticleWithCity
+from .embedding_service import EmbeddingService
+from ..repositories.chroma_repository import ChromaRepository
+from ..models import Article
 from typing import List
 
 class IndexingService:
@@ -8,10 +9,10 @@ class IndexingService:
         self.embedding_service = embedding_service
         self.chroma_repo = chroma_repo
 
-    def index_articles(self, articles: List[Article]):
+    def index_articles(self, articles: List[ArticleWithCity]):
         contents = [article.content for article in articles]
         embeddings = self.embedding_service.create_embeddings(contents)
         ids = [str(article.id) for article in articles]
-        metadatas = [article.dict() for article in articles]
+        metadatas = [article.model_dump() for article in articles]
 
         self.chroma_repo.add_documents(ids=ids, documents=contents, metadatas=metadatas)

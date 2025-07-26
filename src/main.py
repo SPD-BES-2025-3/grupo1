@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from app.routers import articles, search
+from app.routers import articles, search, city
 
 # Cria a instância da aplicação FastAPI
 app = FastAPI(
@@ -15,8 +15,13 @@ app = FastAPI(
 # Inclui os roteadores na aplicação principal
 app.include_router(articles.router)
 app.include_router(search.router)
+app.include_router(city.router)
 
 @app.get("/", tags=["Root"])
 def read_root():
     """Endpoint raiz para verificar se a API está no ar."""
     return {"message": "Bem-vindo à API de Busca Semântica. Acesse /docs para a documentação interativa."}
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run("main:app", host="0.0.0.0", port=8181, reload=True)

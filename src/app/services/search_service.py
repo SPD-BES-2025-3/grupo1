@@ -1,6 +1,6 @@
 from typing import List, Dict, Any
 # Importe seus repositórios e serviços
-from ..repositories.mongo_repository import AnuncioRepository, CidadeRepository, ImobiliariaRepository
+# from ..repositories.mongo_repository import AnuncioRepository, CidadeRepository, ImobiliariaRepository
 from .embedding_service import EmbeddingService
 
 class SearchService:
@@ -10,15 +10,15 @@ class SearchService:
     """
     def _init_(
         self,
-        anuncio_repo: AnuncioRepository,
-        cidade_repo: CidadeRepository,
-        imobiliaria_repo: ImobiliariaRepository,
+        # anuncio_repo: AnuncioRepository,
+        # cidade_repo: CidadeRepository,
+        # imobiliaria_repo: ImobiliariaRepository,
         embed_service: EmbeddingService,
         vector_index_client: Any  # Cliente do seu BD Vetorial (ex: pinecone.Index)
     ):
-        self.anuncio_repo = anuncio_repo
-        self.cidade_repo = cidade_repo
-        self.imobiliaria_repo = imobiliaria_repo
+        # self.anuncio_repo = anuncio_repo
+        # self.cidade_repo = cidade_repo
+        # self.imobiliaria_repo = imobiliaria_repo
         self.embed_service = embed_service
         self.vector_index = vector_index_client
 
