@@ -19,7 +19,7 @@ def client():
 @pytest.fixture
 def fake_article() -> ArticleWithCity:
     city = City(name="Goiânia", state=State.GO)
-    article = ArticleWithCity(title="Test", content="Content", features=["Pool"], author="Author", bed_rooms=2, area=200, suites=1, city=city)
+    article = ArticleWithCity(id="123", title="Test", content="Content", features=["Pool"], author="Author", bed_rooms=2, area=200, suites=1, city=city)
     return article
 
 @pytest.fixture
@@ -27,7 +27,6 @@ def mock_repo(fake_article):
     mock = MagicMock()
     mock.get_all_articles.return_value = [fake_article]
     mock.get_article_by_id.return_value = fake_article
-    mock.add_article.return_value = "123"
     mock.update_article.return_value = True
     mock.delete_article.return_value = True
     return mock
@@ -52,7 +51,6 @@ def test_create_article(client, fake_article):
 
 def test_read_articles(client):
     response = client.get("/articles/")
-    print(response)
     assert response.status_code == status.HTTP_200_OK
     assert isinstance(response.json(), list)
 
@@ -66,11 +64,16 @@ def test_update_article(client, fake_article):
     assert response.status_code == status.HTTP_200_OK
     assert response.json()["content"] == "Content"
 
-def test_delete_article(client):
+def test_delete_article_success(client):
     response = client.delete("/articles/123")
-    assert response.status_code == status.HTTP_200_OK
+    assert response.status_code == status.HTTP_204_NO_CONTENT
 
-def test_index_articles(client, mock_repo):
+def test_delete_article_failure(client, mock_repo):
+    mock_repo.delete_article.return_value = False
+    response = client.delete("/articles/non_existed_id")
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+
+def test_index_articles(client):
     response = client.post("/articles/index")
     assert response.status_code == status.HTTP_200_OK
     assert response.json()["message"] == "Articles indexed successfully"

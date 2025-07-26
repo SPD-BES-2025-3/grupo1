@@ -35,9 +35,21 @@ def fetch_cities():
     if response.status_code == 200:
         data = response.json()  # Se a resposta for JSON
         st.session_state.cidades = data
-        print(data)
+        # print(data)
     else:
         st.session_state.ads = []
+        print(f"Erro: {response.status_code}")
+
+def delete_ad(idx):
+    ad = st.session_state.ads[idx]
+    print(ad)
+    id = ad["_id"]
+
+    response = requests.delete(f"http://localhost:8181/articles/{id}")
+
+    if response.status_code == 200:
+        fetch_ads()
+    else:
         print(f"Erro: {response.status_code}")
 
 fetch_ads()
@@ -132,7 +144,7 @@ def show_ads_list():
             st.session_state.subpage = "Adicionar"   # <<< aqui!
             st.experimental_rerun()
         if cols[2].button("Excluir", key=f"del_ad_{idx}"):
-            st.session_state.ads.pop(idx)
+            delete_ad(idx)
             st.success("Anúncio excluído")
 
 # CRUD Cidades
