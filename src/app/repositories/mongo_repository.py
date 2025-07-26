@@ -25,7 +25,6 @@ class MongoDBRepository:
     def get_article_by_id(self, article_id: str) -> Optional[ArticleWithCity]:
         try:
             doc = self.collection.find_one({"_id": ObjectId(article_id)})
-            print(doc)
             if doc:
                 doc["_id"] = str(doc["_id"])
                 doc["city_id"] = str(doc["city_id"])
@@ -35,7 +34,6 @@ class MongoDBRepository:
                 return ArticleWithCity(**doc)
             return None
         except Exception as e:
-            print(e)
             return None
 
     def get_all_articles(self) -> List[ArticleWithCity]:
@@ -46,8 +44,8 @@ class MongoDBRepository:
             city = self.city_repo.find_one_by_id(doc["city_id"])
             doc["city"] = city.model_dump()
             doc["city"]["_id"] = str(doc["city_id"])
-            # del doc["city_id"]
-            articles.append(ArticleWithCity(**doc))
+            article = ArticleWithCity(**doc)
+            articles.append(article)
 
         return articles
 

@@ -37,20 +37,19 @@ def test_find_one_by_id_not_found(mock_db):
 
 def test_find_one_by_name_found(mock_db, mock_city):
     inserted_id = mock_db.create(mock_city)
-    found_city, found_id = mock_db.find_one_by_name("Goiânia", State.GO)
+    found_city = mock_db.find_one_by_name("Goiânia", State.GO)
     assert found_city is not None
     assert found_city.name == "Goiânia"
-    assert found_id == inserted_id
+    assert found_city.id == str(inserted_id)
 
 def test_find_one_by_name_not_found(mock_db):
-    city, city_id = mock_db.find_one_by_name("Cidade Fantasma", State.SP)
+    city = mock_db.find_one_by_name("Cidade Fantasma", State.SP)
     assert city is None
-    assert city_id is None
 
 def test_find_or_create_existing_city(mock_db, mock_city):
     inserted_id = mock_db.create(mock_city)
     found_id = mock_db.find_or_create(mock_city)
-    assert found_id == inserted_id
+    assert found_id == str(inserted_id)
 
 def test_find_or_create_new_city(mock_db):
     new_city = City(name="Nova Cidade", state=State.MT)

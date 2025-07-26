@@ -12,7 +12,7 @@ class IndexingService:
     def index_articles(self, articles: List[ArticleWithCity]):
         contents = [article.content for article in articles]
         embeddings = self.embedding_service.create_embeddings(contents)
-        ids = [str(article._id) for article in articles]
+        ids = [str(article.id) for article in articles]
         metadatas = [article.model_dump() for article in articles]
 
         self.chroma_repo.add_documents(ids=ids, documents=contents, metadatas=metadatas)

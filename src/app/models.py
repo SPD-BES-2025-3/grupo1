@@ -48,19 +48,19 @@ class State(str, Enum):
     TO = "Tocantins"
 
 class City(BaseModel):
-    _id: Optional[str] = None
+    id: Optional[str] = Field(default=None, alias="_id")
     name: str
     state: State
 
 class Article(BaseModel):
-    _id: Optional[str] = None
+    id: Optional[str] = Field(default=None, alias="_id")
     title: str
     content: str
     features: List[str]
     area: float
     bed_rooms: int
     suites: int
-    bath_rooms: Optional[int]
+    bath_rooms: Optional[int] = None
     description: Optional[str] = None
     price: Optional[float] = None
     location: Optional[str] = None
