@@ -57,4 +57,27 @@ def test_delete_article(mock_db, article, city):
     inserted_id = mock_db.add_article(article, city)
     success = mock_db.delete_article(inserted_id)
     assert success is True
-    assert mock_db.collection.find_one({"_id": ObjectId(inserted_id)}) is None
+    assert mock_db.get_article_by_id(inserted_id) is None
+
+
+def test_delete_article_deletes_city_if_last_reference(mock_db, article, city):
+    # Insert the article and get its ID
+    inserted_id = mock_db.add_article(article, city)
+
+    # Verify the article and its city exist
+    article = mock_db.get_article_by_id(inserted_id)
+    assert article is not None
+
+    city_id = article.city_id
+    assert mock_db.city_repo.find_one_by_id(city_id) is not None
+
+    # Delete the article
+    success = mock_db.delete_article(inserted_id)
+    assert success is True
+
+    # The article should be gone
+    assert mock_db.get_article_by_id(inserted_id) is None
+
+    # The city should also be gone since no other articles reference it
+    print(mock_db.city_repo.find_one_by_id(city_id))
+    assert mock_db.city_repo.find_one_by_id(city_id) is None

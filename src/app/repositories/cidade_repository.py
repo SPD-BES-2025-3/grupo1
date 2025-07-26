@@ -55,3 +55,11 @@ class CidadeRepository:
         """Busca múltiplas cidades por uma lista de IDs."""
         documents = self.collection.find({"_id": {"$in": ids}})
         return [doc_to_model(doc) for doc in documents]
+    
+    def delete_one(self, id: str) -> bool:
+        try:
+            result = self.collection.delete_one({"_id": ObjectId(id)})
+            return result.deleted_count == 1
+        except Exception as e:
+            print(e)
+            return False

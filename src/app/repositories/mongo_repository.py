@@ -64,7 +64,25 @@ class MongoDBRepository:
 
     def delete_article(self, article_id: str) -> bool:
         try:
+            # 1. Find the article to get its city_id
+            article = self.get_article_by_id(article_id)
+            if not article:
+                return False
+
+            # 2. Delete the article
             result = self.collection.delete_one({"_id": ObjectId(article_id)})
-            return result.deleted_count > 0
+
+            city = self.city_repo.find_one_by_id(article.city_id)
+            if not city or not city.id:
+                return result.deleted_count == 1
+
+            # 3. Check if any other articles reference the same city
+            other_articles = self.collection.find_one({"city_id": ObjectId(city.id)})
+            if not other_articles:
+                print(f"City {city.id} not referenced anymore, deleting...")
+                # No other articles reference this city, delete the city
+                self.city_repo.delete_one(city.id)
+
+            return result.deleted_count == 1
         except Exception:
             return False

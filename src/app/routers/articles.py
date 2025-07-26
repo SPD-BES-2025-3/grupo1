@@ -55,7 +55,6 @@ def update_article(article_id: str, article: Article, repo: any = Depends(get_re
 @router.delete("/articles/{article_id}")
 def delete_article(article_id: str, repo: any = Depends(get_repository)):
     result = repo.delete_article(article_id)
-    print(result)
     if result is False:
         raise HTTPException(status_code=404, detail="Article not found")
     
