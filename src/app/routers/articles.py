@@ -34,7 +34,9 @@ def create_article(article: ArticleWithCity, repo: any = Depends(get_repository)
 
 @router.get("/articles/", response_model=List[ArticleWithCity])
 def read_articles(repo: any = Depends(get_repository)):
-    return repo.get_all_articles()
+    articles = repo.get_all_articles() 
+    print(articles)
+    return articles
 
 @router.get("/articles/{article_id}", response_model=Article)
 def read_article(article_id: str, repo: any = Depends(get_repository)):

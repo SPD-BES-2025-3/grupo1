@@ -14,8 +14,7 @@ def mock_db():
 
 @pytest.fixture
 def article() -> Article:
-    city = City(name="Goiânia", state=State.GO)
-    article = Article(title="Test", content="Content", author="Author")
+    article = Article(title="Test", content="Content", features=["Pool"], author="Author", bed_rooms=2, area=200, suites=1)
     return article
 
 @pytest.fixture
@@ -45,14 +44,13 @@ def test_get_all_articles(mock_db, article, city):
 
 def test_update_article(mock_db, article, city):
     inserted_id = mock_db.add_article(article, city)
-    updated_article = Article(title="New", content="New", author="New")
+    updated_article = Article(title="New", content="New", features=["AC", "Pool"], author="New", suites=2, bed_rooms=1, area=150)
     updated_city = City(name="São Paulo", state=State.SP)
     success = mock_db.update_article(inserted_id, updated_article, updated_city)
     assert success is True
     updated = mock_db.get_article_by_id(inserted_id)
     assert updated.title == "New"
     assert updated.city.name == "São Paulo"
-
 
 
 def test_delete_article(mock_db, article, city):

@@ -49,7 +49,6 @@ class MongoDBRepository:
             # del doc["city_id"]
             articles.append(ArticleWithCity(**doc))
 
-        print(articles)
         return articles
 
     def update_article(self, article_id: str, article: Article, city: City) -> bool:

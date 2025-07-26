@@ -19,7 +19,7 @@ def client():
 @pytest.fixture
 def fake_article() -> ArticleWithCity:
     city = City(name="Goiânia", state=State.GO)
-    article = ArticleWithCity(_id="123", title="Test", content="Something", author="Author", city=city)
+    article = ArticleWithCity(title="Test", content="Content", features=["Pool"], author="Author", bed_rooms=2, area=200, suites=1, city=city)
     return article
 
 @pytest.fixture
@@ -46,12 +46,13 @@ def override_dependencies(mock_repo, mock_chroma_repo):
     app.dependency_overrides = {}
 
 def test_create_article(client, fake_article):
-    response = client.post("/articles/", json=fake_article.dict())
+    response = client.post("/articles/", json=fake_article.model_dump())
     assert response.status_code == status.HTTP_200_OK
     assert response.json()["title"] == "Test"
 
 def test_read_articles(client):
     response = client.get("/articles/")
+    print(response)
     assert response.status_code == status.HTTP_200_OK
     assert isinstance(response.json(), list)
 
@@ -61,9 +62,9 @@ def test_read_article(client):
     assert response.json()["title"] == "Test"
 
 def test_update_article(client, fake_article):
-    response = client.put("/articles/123", json=fake_article.dict())
+    response = client.put("/articles/123", json=fake_article.model_dump())
     assert response.status_code == status.HTTP_200_OK
-    assert response.json()["content"] == "Something"
+    assert response.json()["content"] == "Content"
 
 def test_delete_article(client):
     response = client.delete("/articles/123")

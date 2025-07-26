@@ -8,6 +8,14 @@ class CidadeRepository:
     def __init__(self, db: Database):
         self.collection = db["cities"]
 
+    def get_all(self) -> List[City]:
+        cities = []
+        for doc in self.collection.find():
+            doc["_id"] = str(doc["_id"])
+            cities.append(City(**doc))
+
+        return cities
+
     def find_one_by_id(self, city_id: str) -> Optional[City]:
         try:
             doc = self.collection.find_one({"_id": ObjectId(city_id)})

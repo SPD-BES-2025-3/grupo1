@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from app.routers import articles, search
+from app.routers import articles, search, city
 
 # Cria a instância da aplicação FastAPI
 app = FastAPI(
@@ -15,6 +15,7 @@ app = FastAPI(
 # Inclui os roteadores na aplicação principal
 app.include_router(articles.router)
 app.include_router(search.router)
+app.include_router(city.router)
 
 @app.get("/", tags=["Root"])
 def read_root():

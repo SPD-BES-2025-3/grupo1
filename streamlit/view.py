@@ -1,8 +1,5 @@
- #std-lib
-import time
 import random
-import typing
-
+import requests
 import streamlit as st
 
 # Configuração da página e tema escuro
@@ -20,6 +17,31 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
+
+def fetch_ads():
+    response = requests.get("http://localhost:8181/articles/")
+
+    if response.status_code == 200:
+        data = response.json()  # Se a resposta for JSON
+        st.session_state.ads = data
+        print(data)
+    else:
+        st.session_state.ads = []
+        print(f"Erro: {response.status_code}")
+
+def fetch_cities():
+    response = requests.get("http://localhost:8181/cities/")
+
+    if response.status_code == 200:
+        data = response.json()  # Se a resposta for JSON
+        st.session_state.cidades = data
+        print(data)
+    else:
+        st.session_state.ads = []
+        print(f"Erro: {response.status_code}")
+
+fetch_ads()
+fetch_cities()
 
 # Estado inicial com registros de exemplo
 if "ads" not in st.session_state:
@@ -72,14 +94,14 @@ def ad_form():
     mode = "Editar" if st.session_state.selected_ad is not None else "Criar"
     with st.form(key="ad_form"):
         st.subheader(f"{mode} Anúncio")
-        titulo = st.text_input("Título", value=(st.session_state.ads[st.session_state.selected_ad]['titulo'] if st.session_state.selected_ad is not None else ""))
-        descricao = st.text_area("Descrição", value=(st.session_state.ads[st.session_state.selected_ad]['descricao'] if st.session_state.selected_ad is not None else ""))
-        preco = st.number_input("Preço (R$)", min_value=0.0, step=50.0, value=(st.session_state.ads[st.session_state.selected_ad]['preco'] if st.session_state.selected_ad is not None else 0.0))
+        titulo = st.text_input("Título", value=(st.session_state.ads[st.session_state.selected_ad]['title'] if st.session_state.selected_ad is not None else ""))
+        descricao = st.text_area("Descrição", value=(st.session_state.ads[st.session_state.selected_ad]['description'] if st.session_state.selected_ad is not None else ""))
+        preco = st.number_input("Preço (R$)", min_value=0.0, step=50.0, value=(st.session_state.ads[st.session_state.selected_ad]['price'] if st.session_state.selected_ad is not None else 0.0))
         area = st.number_input("Área (m²)", min_value=0.0, step=1.0, value=(st.session_state.ads[st.session_state.selected_ad]['area'] if st.session_state.selected_ad is not None else 0.0))
-        quartos = st.number_input("Quartos", min_value=0, step=1, value=(st.session_state.ads[st.session_state.selected_ad]['quartos'] if st.session_state.selected_ad is not None else 0))
-        banheiros = st.number_input("Banheiros", min_value=0, step=1, value=(st.session_state.ads[st.session_state.selected_ad]['banheiros'] if st.session_state.selected_ad is not None else 0))
+        quartos = st.number_input("Quartos", min_value=0, step=1, value=(st.session_state.ads[st.session_state.selected_ad]['bed_rooms'] if st.session_state.selected_ad is not None else 0))
+        banheiros = st.number_input("Banheiros", min_value=0, step=1, value=(st.session_state.ads[st.session_state.selected_ad]['bath_rooms'] if st.session_state.selected_ad is not None else 0))
         suites = st.number_input("Suítes", min_value=0, step=1, value=(st.session_state.ads[st.session_state.selected_ad]['suites'] if st.session_state.selected_ad is not None else 0))
-        caracteristicas = st.text_input("Características (separadas por vírgula)", value=(", ".join(st.session_state.ads[st.session_state.selected_ad]['caracteristicas']) if st.session_state.selected_ad is not None else ""))
+        caracteristicas = st.text_input("Características (separadas por vírgula)", value=(", ".join(st.session_state.ads[st.session_state.selected_ad]['content']) if st.session_state.selected_ad is not None else ""))
         cidades = [c['nome'] for c in st.session_state.cidades]
         anunciantes = [a['nome'] for a in st.session_state.anunciantes]
         cidade_sel = st.selectbox("Cidade", options=[""]+cidades)
@@ -104,7 +126,7 @@ def show_ads_list():
         return
     for idx, ad in enumerate(st.session_state.ads):
         cols = st.columns([4,1,1])
-        cols[0].markdown(f"**{ad['titulo']}** ({ad['cidade']}) - {ad['anunciante']} | R$ {ad['preco']}")
+        cols[0].markdown(f"**{ad['title']}** ({ad['city']["name"]}) - anunciante | R$ {ad['price']}")
         if cols[1].button("Editar", key=f"edit_ad_{idx}"):
             st.session_state.selected_ad = idx
             st.session_state.subpage = "Adicionar"   # <<< aqui!
@@ -137,7 +159,7 @@ def show_cities_list():
         return
     for idx, city in enumerate(st.session_state.cidades):
         cols = st.columns([4,1,1])
-        cols[0].markdown(f"**{city['nome']}** - {city['estado']}")
+        cols[0].markdown(f"**{city['name']}** - {city['state']}")
         if cols[1].button("Editar", key=f"edit_city_{idx}"):
             st.session_state.selected_city = idx
             st.session_state.subpage = "Adicionar"   # <<< aqui!

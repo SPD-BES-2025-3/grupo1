@@ -1,6 +1,6 @@
 from bson import ObjectId
 from pydantic import BaseModel, Field
-from typing import Optional
+from typing import List, Optional
 from enum import Enum
 
 # class PyObjectId(ObjectId):
@@ -56,8 +56,14 @@ class Article(BaseModel):
     _id: Optional[str] = None
     title: str
     content: str
+    features: List[str]
+    area: float
+    bed_rooms: int
+    suites: int
+    bath_rooms: Optional[int]
     description: Optional[str] = None
     price: Optional[float] = None
     location: Optional[str] = None
     url: Optional[str] = None
     city_id: Optional[str] = None
+    anounser_id: Optional[str] = None 
