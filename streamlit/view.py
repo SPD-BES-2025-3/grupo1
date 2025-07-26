@@ -175,9 +175,9 @@ def show_cities_list():
         if cols[1].button("Editar", key=f"edit_city_{idx}"):
             st.session_state.selected_city = idx
             st.session_state.subpage = "Adicionar"   # <<< aqui!
-        if cols[2].button("Excluir", key=f"del_city_{idx}"):
-            st.session_state.cidades.pop(idx)
-            st.success("Cidade excluída")
+        # if cols[2].button("Excluir", key=f"del_city_{idx}"):
+        #     st.session_state.cidades.pop(idx)
+        #     st.success("Cidade excluída")
 
 # CRUD Anunciantes
 def ann_form():
@@ -207,9 +207,9 @@ def show_ann_list():
         if cols[1].button("Editar", key=f"edit_ann_{idx}"):
             st.session_state.selected_ann = idx
             st.session_state.subpage = "Adicionar"   # <<< aqui!
-        if cols[2].button("Excluir", key=f"del_ann_{idx}"):
-            st.session_state.anunciantes.pop(idx)
-            st.success("Anunciante excluído")
+        # if cols[2].button("Excluir", key=f"del_ann_{idx}"):
+        #     st.session_state.anunciantes.pop(idx)
+        #     st.success("Anunciante excluído")
 
 # Roteamento de páginas
 if st.session_state.page == "App":
