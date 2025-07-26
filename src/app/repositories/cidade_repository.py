@@ -28,7 +28,6 @@ class CidadeRepository:
         except Exception:
             return None
 
-
     def find_one_by_name(self, nome: str, estado: State) -> Optional[City]:
         """Encontra uma cidade pelo nome e estado."""
         document = self.collection.find_one({"name": nome, "state": estado})

@@ -5,6 +5,8 @@ from app.repositories.cidade_repository import CidadeRepository
 from ..models import Article, City
 from bson import ObjectId
 
+from app.repositories.imobiliaria_repository import ImobiliariaRepository
+
 class ArticleWithCity(Article):
     city: City
 
@@ -14,6 +16,7 @@ class MongoDBRepository:
         self.db = self.client[db_name]
         self.collection = self.db.articles
         self.city_repo = CidadeRepository(self.db)
+        self.imobiliaria_repo = ImobiliariaRepository(self.db)
 
     def add_article(self, article: Article, city: City) -> str:
         city_id = self.city_repo.find_or_create(city)

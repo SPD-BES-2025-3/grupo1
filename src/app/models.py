@@ -66,4 +66,9 @@ class Article(BaseModel):
     location: Optional[str] = None
     url: Optional[str] = None
     city_id: Optional[str] = None
-    anounser_id: Optional[str] = None 
+    anounser_id: Optional[str] = None
+    
+class Real_Estate(BaseModel):
+    id: Optional[str] = Field(default=None, alias="_id")
+    name: str
+    phone: str
