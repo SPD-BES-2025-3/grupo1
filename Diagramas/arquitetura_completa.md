@@ -147,8 +147,8 @@ sequenceDiagram
     participant M as 🍃 MongoDB
     participant C as 🎯 ChromaDB
     
-    %% Adicionar Imóvel
-    rect rgb(230, 255, 230)
+    % Adicionar Imóvel
+    rect rgba(15, 17, 15, 1)
         note over U,C: ➕ ADICIONAR IMÓVEL
         U->>ST: Preenche formulário (título, descrição, specs)
         ST->>API: POST /imoveis/ {imovel_data}
@@ -171,7 +171,7 @@ sequenceDiagram
     end
     
     %% Editar Imóvel
-    rect rgb(255, 245, 230)
+    rect rgba(20, 20, 19, 1)
         note over U,C: ✏️ EDITAR IMÓVEL
         U->>ST: Busca por ID/título
         ST->>API: GET /imoveis/
@@ -200,7 +200,7 @@ sequenceDiagram
     end
     
     %% Excluir Imóvel
-    rect rgb(255, 230, 230)
+    rect rgba(15, 14, 14, 1)
         note over U,C: 🗑️ EXCLUIR IMÓVEL
         U->>ST: Lista imóveis + "🗑️ Excluir"
         ST->>ST: Confirmação "Tem certeza?"
