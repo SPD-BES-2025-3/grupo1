@@ -5,7 +5,7 @@ from uuid import UUID
 class ChromaRepository:
     def __init__(self, path: str = "./chroma_db"):
         self.client = chromadb.PersistentClient(path=path)
-        self.collection = self.client.get_or_create_collection(name="articles")
+        self.collection = self.client.get_or_create_collection(name="imoveis")
 
     def add_documents(self, ids: List[str], documents: List[str], metadatas: List[Dict[str, Any]]):
         self.collection.add(
@@ -18,4 +18,24 @@ class ChromaRepository:
         return self.collection.query(
             query_embeddings=query_embeddings,
             n_results=n_results
+        )
+    
+    def update_document(self, id: str, document: str, metadata: Dict[str, Any]):
+        """Atualiza um documento existente"""
+        self.collection.update(
+            ids=[id],
+            documents=[document],
+            metadatas=[metadata]
+        )
+    
+    def delete_document(self, id: str):
+        """Remove um documento do ChromaDB"""
+        self.collection.delete(ids=[id])
+    
+    def upsert_documents(self, ids: List[str], documents: List[str], metadatas: List[Dict[str, Any]]):
+        """Insere ou atualiza documentos"""
+        self.collection.upsert(
+            ids=ids,
+            documents=documents,
+            metadatas=metadatas
         )

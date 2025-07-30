@@ -1,74 +1,63 @@
-from bson import ObjectId
 from pydantic import BaseModel, Field
-from typing import List, Optional
-from enum import Enum
+from typing import Optional, List
+from bson import ObjectId
 
-# class PyObjectId(ObjectId):
-#     @classmethod
-#     def __get_validators__(cls):
-#         yield cls.validate
+class PyObjectId(ObjectId):
+    @classmethod
+    def __get_validators__(cls):
+        yield cls.validate
 
-#     @classmethod
-#     def validate(cls, v):
-#         if not ObjectId.is_valid(v):
-#             raise ValueError("Invalid ObjectId")
-#         return ObjectId(v)
+    @classmethod
+    def validate(cls, v):
+        if not ObjectId.is_valid(v):
+            raise ValueError("Invalid objectid")
+        return ObjectId(v)
 
-#     @classmethod
-#     def __modify_schema__(cls, field_schema):
-#         field_schema.update(type="string")
+    @classmethod
+    def __get_pydantic_json_schema__(cls, field_schema):
+        field_schema.update(type="string")
 
-class State(str, Enum):
-    AC = "Acre"
-    AL = "Alagoas"
-    AP = "Amapá"
-    AM = "Amazonas"
-    BA = "Bahia"
-    CE = "Ceará"
-    DF = "Distrito Federal"
-    ES = "Espírito Santo"
-    GO = "Goiás"
-    MA = "Maranhão"
-    MT = "Mato Grosso"
-    MS = "Mato Grosso do Sul"
-    MG = "Minas Gerais"
-    PA = "Pará"
-    PB = "Paraíba"
-    PR = "Paraná"
-    PE = "Pernambuco"
-    PI = "Piauí"
-    RJ = "Rio de Janeiro"
-    RN = "Rio Grande do Norte"
-    RS = "Rio Grande do Sul"
-    RO = "Rondônia"
-    RR = "Roraima"
-    SC = "Santa Catarina"
-    SP = "São Paulo"
-    SE = "Sergipe"
-    TO = "Tocantins"
+class Imovel(BaseModel):
+    titulo: str
+    descricao: str
+    especificacoes: List[str]
 
-class City(BaseModel):
-    id: Optional[str] = Field(default=None, alias="_id")
-    name: str
-    state: State
+class ImovelInDB(Imovel):
+    id: str  # Usar string diretamente para sincronização perfeita
 
-class Article(BaseModel):
-    id: Optional[str] = Field(default=None, alias="_id")
-    title: str
-    content: str
-    features: List[str]
-    area: float
-    bed_rooms: int
-    suites: int
-    bath_rooms: Optional[int] = None
-    description: Optional[str] = None
-    price: Optional[float] = None
-    location: Optional[str] = None
-    url: Optional[str] = None
-    city_id: Optional[str] = None
-    anounser_id: Optional[str] = None
+    class Config:
+        json_encoders = {
+            ObjectId: str
+        }
+
+class Corretor(BaseModel):
+    nome: str
+    email: str
+    telefone: str
+    creci: str
+    ativo: bool = True
+    especialidades: List[str] = []  # Ex: ["Residencial", "Comercial", "Rural"]
+    cidades_atendidas: List[str] = []  # IDs das cidades que atende
+
+class CorretorInDB(Corretor):
+    id: str
+
+    class Config:
+        json_encoders = {
+            ObjectId: str
+        }
+
+class Cidade(BaseModel):
+    nome: str
+    estado: str  # Sigla do estado (ex: "GO", "SP")
+    regiao: Optional[str] = None  # Ex: "Centro-Oeste", "Sudeste"
+    populacao: Optional[int] = None
+    area_km2: Optional[float] = None
     
-class Real_Estate(BaseModel):
-    id: Optional[str] = Field(default=None, alias="_id")
-    name: str
-    phone: str
+class CidadeInDB(Cidade):
+    id: str
+    
+    class Config:
+        json_encoders = {
+            ObjectId: str
+        }

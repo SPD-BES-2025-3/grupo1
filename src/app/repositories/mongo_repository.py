@@ -1,91 +1,90 @@
 from pymongo import MongoClient
-from typing import List, Optional
-
-from app.repositories.cidade_repository import CidadeRepository
-from ..models import Article, City
 from bson import ObjectId
+from typing import List, Dict, Any
+from ..models import ImovelInDB
 
-from app.repositories.imobiliaria_repository import ImobiliariaRepository
-
-class ArticleWithCity(Article):
-    city: City
-
-class MongoDBRepository:
-    def __init__(self, uri: str, db_name: str, client=None):
-        self.client = client if client else MongoClient(uri)
+class MongoRepository:
+    def __init__(self, uri: str, db_name: str):
+        self.client = MongoClient(uri)
         self.db = self.client[db_name]
-        self.collection = self.db.articles
-        self.city_repo = CidadeRepository(self.db)
-        self.imobiliaria_repo = ImobiliariaRepository(self.db)
+        self.collection = self.db.imoveis
+        self.corretores_collection = self.db.corretores
+        self.cidades_collection = self.db.cidades
 
-    def add_article(self, article: Article, city: City) -> str:
-        city_id = self.city_repo.find_or_create(city)
-        article_dict = article.model_dump()
-        article_dict["city_id"] = city_id   
-        result = self.collection.insert_one(article_dict)
+    def add_imovel(self, imovel: Dict[str, Any]) -> str:
+        # Fazer cópia para não modificar o dicionário original
+        imovel_copy = imovel.copy()
+        result = self.collection.insert_one(imovel_copy)
         return str(result.inserted_id)
 
-    def get_article_by_id(self, article_id: str) -> Optional[ArticleWithCity]:
-        try:
-            doc = self.collection.find_one({"_id": ObjectId(article_id)})
-            if doc:
-                doc["_id"] = str(doc["_id"])
-                doc["city_id"] = str(doc["city_id"])
-                city = self.city_repo.find_one_by_id(doc["city_id"])
-                doc["city"] = city.model_dump()
-                doc["city"]["_id"] = str(doc["city_id"])
-                return ArticleWithCity(**doc)
-            return None
-        except Exception as e:
-            return None
+    def get_imovel_by_id(self, imovel_id: str) -> Dict[str, Any]:
+        result = self.collection.find_one({"_id": ObjectId(imovel_id)})
+        if result:
+            result["id"] = str(result["_id"])
+            del result["_id"]
+        return result
 
-    def get_all_articles(self) -> List[ArticleWithCity]:
-        articles = []
-        for doc in self.collection.find():
-            doc["_id"] = str(doc["_id"])
-            doc["city_id"] = str(doc["city_id"])
-            city = self.city_repo.find_one_by_id(doc["city_id"])
-            doc["city"] = city.model_dump()
-            doc["city"]["_id"] = str(doc["city_id"])
-            article = ArticleWithCity(**doc)
-            articles.append(article)
+    def get_all_imoveis(self) -> List[Dict[str, Any]]:
+        results = list(self.collection.find())
+        for result in results:
+            result["id"] = str(result["_id"])
+            del result["_id"]
+        return results
 
-        return articles
+    def update_imovel(self, imovel_id: str, imovel: Dict[str, Any]):
+        self.collection.update_one({"_id": ObjectId(imovel_id)}, {"$set": imovel})
 
-    def update_article(self, article_id: str, article: Article, city: City) -> bool:
-        try:
-            article_dict = article.model_dump()
-            city_id = self.city_repo.find_or_create(city)
-            article_dict["city_id"] = city_id   
-            result = self.collection.update_one(
-                {"_id": ObjectId(article_id)},
-                {"$set": article_dict}
-            )
-            return result.modified_count > 0
-        except Exception:
-            return False
-
-    def delete_article(self, article_id: str) -> bool:
-        try:
-            # 1. Find the article to get its city_id
-            article = self.get_article_by_id(article_id)
-            if not article:
-                return False
-
-            # 2. Delete the article
-            result = self.collection.delete_one({"_id": ObjectId(article_id)})
-
-            city = self.city_repo.find_one_by_id(article.city_id)
-            if not city or not city.id:
-                return result.deleted_count == 1
-
-            # 3. Check if any other articles reference the same city
-            other_articles = self.collection.find_one({"city_id": ObjectId(city.id)})
-            if not other_articles:
-                print(f"City {city.id} not referenced anymore, deleting...")
-                # No other articles reference this city, delete the city
-                self.city_repo.delete_one(city.id)
-
-            return result.deleted_count == 1
-        except Exception:
-            return False
+    def delete_imovel(self, imovel_id: str):
+        self.collection.delete_one({"_id": ObjectId(imovel_id)})
+    
+    # Métodos para Corretores
+    def add_corretor(self, corretor: Dict[str, Any]) -> str:
+        corretor_copy = corretor.copy()
+        result = self.corretores_collection.insert_one(corretor_copy)
+        return str(result.inserted_id)
+    
+    def get_corretor_by_id(self, corretor_id: str) -> Dict[str, Any]:
+        result = self.corretores_collection.find_one({"_id": ObjectId(corretor_id)})
+        if result:
+            result["id"] = str(result["_id"])
+            del result["_id"]
+        return result
+    
+    def get_all_corretores(self) -> List[Dict[str, Any]]:
+        results = list(self.corretores_collection.find())
+        for result in results:
+            result["id"] = str(result["_id"])
+            del result["_id"]
+        return results
+    
+    def update_corretor(self, corretor_id: str, corretor: Dict[str, Any]):
+        self.corretores_collection.update_one({"_id": ObjectId(corretor_id)}, {"$set": corretor})
+    
+    def delete_corretor(self, corretor_id: str):
+        self.corretores_collection.delete_one({"_id": ObjectId(corretor_id)})
+    
+    # Métodos para Cidades
+    def add_cidade(self, cidade: Dict[str, Any]) -> str:
+        cidade_copy = cidade.copy()
+        result = self.cidades_collection.insert_one(cidade_copy)
+        return str(result.inserted_id)
+    
+    def get_cidade_by_id(self, cidade_id: str) -> Dict[str, Any]:
+        result = self.cidades_collection.find_one({"_id": ObjectId(cidade_id)})
+        if result:
+            result["id"] = str(result["_id"])
+            del result["_id"]
+        return result
+    
+    def get_all_cidades(self) -> List[Dict[str, Any]]:
+        results = list(self.cidades_collection.find())
+        for result in results:
+            result["id"] = str(result["_id"])
+            del result["_id"]
+        return results
+    
+    def update_cidade(self, cidade_id: str, cidade: Dict[str, Any]):
+        self.cidades_collection.update_one({"_id": ObjectId(cidade_id)}, {"$set": cidade})
+    
+    def delete_cidade(self, cidade_id: str):
+        self.cidades_collection.delete_one({"_id": ObjectId(cidade_id)})
