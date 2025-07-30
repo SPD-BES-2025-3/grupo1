@@ -23,11 +23,9 @@ def search_imoveis(query: str = "casa com piscina", n_results: int = 30):
         from ..repositories.chroma_repository import ChromaRepository
         from ..config import MONGO_URI, MONGO_DB_NAME
         
-        # Inicializar repositórios
         mongo_repo = MongoRepository(uri=MONGO_URI, db_name=MONGO_DB_NAME)
         chroma_repo = ChromaRepository(path="./chroma_db")
         
-        # Usar SearchService com a arquitetura correta
         embedding_service = EmbeddingService()
         search_service = SearchService(
             embedding_service=embedding_service, 
@@ -35,7 +33,6 @@ def search_imoveis(query: str = "casa com piscina", n_results: int = 30):
             mongo_repo=mongo_repo
         )
         
-        # Executar busca semântica
         results = search_service.search(query=query, n_results=n_results)
         
         return {
@@ -47,7 +44,6 @@ def search_imoveis(query: str = "casa com piscina", n_results: int = 30):
         }
         
     except Exception as e:
-        # Fallback para busca simples se houver problemas com embeddings
         from pymongo import MongoClient
         
         try:
@@ -55,7 +51,6 @@ def search_imoveis(query: str = "casa com piscina", n_results: int = 30):
             db = client["spd_imoveis"]
             collection = db["imoveis"]
             
-            # Busca textual como fallback
             fallback_results = list(collection.find({
                 "$or": [
                     {"titulo": {"$regex": query, "$options": "i"}},
@@ -63,7 +58,6 @@ def search_imoveis(query: str = "casa com piscina", n_results: int = 30):
                 ]
             }).limit(n_results))
             
-            # Converter ObjectId para string
             for result in fallback_results:
                 result["id"] = str(result["_id"])
                 del result["_id"]
@@ -98,7 +92,6 @@ def rerank_with_feedback(feedback: FeedbackRequest):
     try:
         llm_service = LLMRerankingService()
         
-        # Executar seleção com LLM
         llm_response = llm_service.rerank_properties(
             query=feedback.query,
             liked_properties=feedback.liked_properties,
@@ -106,7 +99,6 @@ def rerank_with_feedback(feedback: FeedbackRequest):
             remaining_properties=feedback.remaining_properties
         )
         
-        # Buscar dados completos dos imóveis selecionados pela IA
         from ..repositories.mongo_repository import MongoRepository
         from ..config import MONGO_URI, MONGO_DB_NAME
         
@@ -115,12 +107,10 @@ def rerank_with_feedback(feedback: FeedbackRequest):
         enhanced_results = []
         decision_reasoning = ""
         
-        # Se há resposta estruturada da LLM
         if isinstance(llm_response, dict) and "selected_properties" in llm_response:
             decision_reasoning = llm_response.get("decision_reasoning", "")
             selected_properties = llm_response.get("selected_properties", [])
         else:
-            # Fallback para formato antigo
             selected_properties = llm_response if isinstance(llm_response, list) else []
         
         for item in selected_properties:

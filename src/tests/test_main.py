@@ -12,7 +12,6 @@ class TestMainRoute:
     
     def test_api_docs_available(self, client):
         """Testa se a documentação da API está disponível"""
-        # FastAPI gera automaticamente docs em /docs
         response = client.get("/docs")
         assert response.status_code == 200
     

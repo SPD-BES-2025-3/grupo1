@@ -2,6 +2,11 @@ from pydantic import BaseModel, Field
 from typing import Optional, List
 from bson import ObjectId
 
+#Padrão de design do Pydantic para FastAPI
+#BASE                                                         VS                              INDB 
+#Servem como um formulário de entrada para criar novos dados. x  Representam os dados que já estão salvos no banco de dados
+
+
 class PyObjectId(ObjectId):
     @classmethod
     def __get_validators__(cls):
@@ -23,7 +28,7 @@ class Imovel(BaseModel):
     especificacoes: List[str]
 
 class ImovelInDB(Imovel):
-    id: str  # Usar string diretamente para sincronização perfeita
+    id: str  
 
     class Config:
         json_encoders = {

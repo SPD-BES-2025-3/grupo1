@@ -3,7 +3,7 @@ import sys
 import os
 import time
 
-# Adicionar o diretório src ao path
+
 current_dir = os.path.dirname(os.path.abspath(__file__))
 src_dir = os.path.join(current_dir, '../../..')
 sys.path.insert(0, src_dir)
@@ -64,7 +64,7 @@ class UpdateWorker:
     
     def start(self):
         """Inicia o worker para processar mensagens de atualização"""
-        print(f"[UPDATE WORKER] 🚀 Iniciado - Aguardando mensagens na queue '{self.queue_name}'")
+        print(f"[UPDATE WORKER] Iniciado - Aguardando mensagens na queue '{self.queue_name}'")
         
         while True:
             try:
@@ -82,10 +82,10 @@ class UpdateWorker:
                     time.sleep(1)
                     
             except KeyboardInterrupt:
-                print(f"[UPDATE WORKER] 🛑 Worker interrompido pelo usuário")
+                print(f"[UPDATE WORKER] Worker interrompido pelo usuário")
                 break
             except Exception as e:
-                print(f"[UPDATE WORKER] ❌ Erro no worker: {e}")
+                print(f"[UPDATE WORKER] Erro no worker: {e}")
                 time.sleep(5)  # Aguarda antes de tentar novamente
 
 

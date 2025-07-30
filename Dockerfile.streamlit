@@ -15,4 +15,4 @@ COPY crawler/ ./crawler/
 EXPOSE 8501
 
 # Comando simples
-CMD ["streamlit", "run", "streamlit/app_fixed.py", "--server.port", "8501", "--server.address", "0.0.0.0"]
+CMD ["streamlit", "run", "streamlit/view.py", "--server.port", "8501", "--server.address", "0.0.0.0"]

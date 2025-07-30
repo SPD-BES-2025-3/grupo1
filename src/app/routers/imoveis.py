@@ -18,16 +18,13 @@ def sync_single_imovel(imovel_id: str):
         from ..config import MONGO_URI, MONGO_DB_NAME
         from bson import ObjectId
         
-        # Conectar aos repositórios
         mongo_repo = MongoRepository(uri=MONGO_URI, db_name=MONGO_DB_NAME)
         chroma_repo = ChromaRepository(path="./chroma_db")
         
-        # Buscar imóvel específico
         imovel_data = mongo_repo.get_imovel_by_id(imovel_id)
         if not imovel_data:
             return {"error": f"Imóvel {imovel_id} não encontrado no MongoDB"}
         
-        # Converter para ImovelInDB
         from ..models import ImovelInDB
         imovel = ImovelInDB(
             id=ObjectId(imovel_data["id"]),
@@ -35,8 +32,7 @@ def sync_single_imovel(imovel_id: str):
             descricao=imovel_data["descricao"],
             especificacoes=imovel_data.get("especificacoes", [])
         )
-        
-        # Indexar no ChromaDB
+
         embedding_service = EmbeddingService()
         indexing_service = IndexingService(embedding_service=embedding_service, chroma_repo=chroma_repo)
         indexing_service.index_single_imovel(imovel)
@@ -59,17 +55,14 @@ def sync_mongo_to_chroma():
         from ..config import MONGO_URI, MONGO_DB_NAME
         from bson import ObjectId
         
-        # Conectar aos repositórios
         mongo_repo = MongoRepository(uri=MONGO_URI, db_name=MONGO_DB_NAME)
         chroma_repo = ChromaRepository(path="./chroma_db")
         
-        # Buscar todos os imóveis do MongoDB
         imoveis_data = mongo_repo.get_all_imoveis()
         
         if not imoveis_data:
             return {"message": "Nenhum imóvel encontrado no MongoDB", "synced": 0}
         
-        # Converter para objetos ImovelInDB
         from ..models import ImovelInDB
         imoveis = []
         for data in imoveis_data:
@@ -85,7 +78,6 @@ def sync_mongo_to_chroma():
                 print(f"Erro ao processar imóvel {data.get('id', 'N/A')}: {e}")
                 continue
         
-        # Indexar no ChromaDB
         embedding_service = EmbeddingService()
         indexing_service = IndexingService(embedding_service=embedding_service, chroma_repo=chroma_repo)
         
@@ -112,12 +104,10 @@ def create_imovel(imovel: Imovel):
     from ..repositories.mongo_repository import MongoRepository
     from ..config import MONGO_URI, MONGO_DB_NAME
     
-    # Salvar no MongoDB (síncrono)
     mongo_repo = MongoRepository(uri=MONGO_URI, db_name=MONGO_DB_NAME)
     imovel_dict = imovel.model_dump()
-    imovel_id = mongo_repo.add_imovel(imovel_dict)  # já retorna string
+    imovel_id = mongo_repo.add_imovel(imovel_dict) 
     
-    # Publicar evento para indexação assíncrona Publica no mongo e depois joga a mensagem no reddis
     message_broker = MessageBrokerService(redis_url=REDIS_URL)
     message_broker.publish_imovel_event(
         event="imovel_created",
@@ -153,16 +143,13 @@ def update_imovel(imovel_id: str, imovel: Imovel):
     
     mongo_repo = MongoRepository(uri=MONGO_URI, db_name=MONGO_DB_NAME)
     
-    # Verificar se imóvel existe
     db_imovel = mongo_repo.get_imovel_by_id(imovel_id)
     if db_imovel is None:
         raise HTTPException(status_code=404, detail="Imovel not found")
     
-    # Atualizar no MongoDB (síncrono)
     imovel_dict = imovel.model_dump()
     mongo_repo.update_imovel(imovel_id, imovel_dict)
     
-    # Publicar evento para re-indexação assíncrona
     message_broker = MessageBrokerService(redis_url=REDIS_URL)
     message_broker.publish_imovel_event(
         event="imovel_updated",
@@ -182,15 +169,12 @@ def delete_imovel(imovel_id: str):
     
     mongo_repo = MongoRepository(uri=MONGO_URI, db_name=MONGO_DB_NAME)
     
-    # Verificar se imóvel existe
     db_imovel = mongo_repo.get_imovel_by_id(imovel_id)
     if db_imovel is None:
         raise HTTPException(status_code=404, detail="Imovel not found")
     
-    # Remover do MongoDB (síncrono)
     mongo_repo.delete_imovel(imovel_id)
     
-    # Publicar evento para remoção do índice assíncrona
     message_broker = MessageBrokerService(redis_url=REDIS_URL)
     message_broker.publish_imovel_event(
         event="imovel_deleted",

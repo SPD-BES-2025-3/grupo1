@@ -4,6 +4,7 @@ from datetime import datetime
 from typing import Dict, Any
 from bson import ObjectId
 
+#Não está implementando com DLQ
 
 class MessageBrokerService:
     def __init__(self, redis_url: str = "redis://localhost:6379"):

@@ -22,7 +22,6 @@ class WorkerManager:
     def start_worker(self, worker_file):
         """Inicia um worker específico"""
         worker_path = os.path.join(os.path.dirname(__file__), worker_file)
-        # Definir PYTHONPATH para os imports funcionarem
         env = os.environ.copy()
         src_dir = os.path.join(os.path.dirname(__file__), '../../..')
         env['PYTHONPATH'] = src_dir
@@ -30,7 +29,7 @@ class WorkerManager:
     
     def start_all(self):
         """Inicia todos os workers"""
-        print("🚀 Iniciando todos os workers...")
+        print("Iniciando todos os workers...")
         
         for worker_file in self.worker_files:
             try:
@@ -40,12 +39,12 @@ class WorkerManager:
             except Exception as e:
                 print(f"❌ Erro ao iniciar {worker_file}: {e}")
         
-        print(f"\n📊 Total de {len(self.workers)} workers rodando")
+        print(f"\nTotal de {len(self.workers)} workers rodando")
         return len(self.workers) > 0
     
     def stop_all(self):
         """Para todos os workers"""
-        print("\n🛑 Parando todos os workers...")
+        print("\nParando todos os workers...")
         
         for process in self.workers:
             try:
@@ -59,7 +58,7 @@ class WorkerManager:
                 print(f"❌ Erro ao parar worker PID {process.pid}: {e}")
         
         self.workers.clear()
-        print("🏁 Todos os workers foram parados")
+        print("Todos os workers foram parados")
     
     def status(self):
         """Mostra status dos workers"""
@@ -73,7 +72,7 @@ class WorkerManager:
     
     def monitor(self):
         """Monitora workers e reinicia se necessário"""
-        print("👁️ Monitor iniciado - Ctrl+C para parar")
+        print("Monitor iniciado - Ctrl+C para parar")
         
         try:
             while True:
@@ -81,7 +80,7 @@ class WorkerManager:
                 for i, process in enumerate(self.workers):
                     if process.poll() is not None:
                         print(f"⚠️ Worker {i+1} parou (código: {process.returncode})")
-                        print(f"🔄 Reiniciando worker {self.worker_files[i]}...")
+                        print(f"Reiniciando worker {self.worker_files[i]}...")
                         
                         # Reiniciar worker
                         new_process = self.start_worker(self.worker_files[i])
@@ -91,14 +90,14 @@ class WorkerManager:
                 time.sleep(10)  # Verificar a cada 10 segundos
                 
         except KeyboardInterrupt:
-            print("\n👋 Monitor interrompido pelo usuário")
+            print("\nMonitor interrompido pelo usuário")
 
 
 def main():
     manager = WorkerManager()
     
     def signal_handler(sig, frame):
-        print("\n⚠️ Sinal de interrupção recebido...")
+        print("\nSinal de interrupção recebido...")
         manager.stop_all()
         sys.exit(0)
     

@@ -59,12 +59,12 @@ class CreateWorker:
             return True
             
         except Exception as e:
-            print(f"[CREATE WORKER] ❌ Erro ao processar criação: {e}")
+            print(f"[CREATE WORKER] Erro ao processar criação: {e}")
             return False
     
     def start(self):
         """Inicia o worker para processar mensagens de criação"""
-        print(f"[CREATE WORKER] 🚀 Iniciado - Aguardando mensagens na queue '{self.queue_name}'")
+        print(f"[CREATE WORKER] Iniciado - Aguardando mensagens na queue '{self.queue_name}'")
         
         while True:
             try:
@@ -82,10 +82,10 @@ class CreateWorker:
                     time.sleep(1)
                     
             except KeyboardInterrupt:
-                print(f"[CREATE WORKER] 🛑 Worker interrompido pelo usuário")
+                print(f"[CREATE WORKER] Worker interrompido pelo usuário")
                 break
             except Exception as e:
-                print(f"[CREATE WORKER] ❌ Erro no worker: {e}")
+                print(f"[CREATE WORKER] Erro no worker: {e}")
                 time.sleep(5)  # Aguarda antes de tentar novamente
 
 

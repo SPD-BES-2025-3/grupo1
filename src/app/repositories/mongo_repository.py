@@ -12,7 +12,6 @@ class MongoRepository:
         self.cidades_collection = self.db.cidades
 
     def add_imovel(self, imovel: Dict[str, Any]) -> str:
-        # Fazer cópia para não modificar o dicionário original
         imovel_copy = imovel.copy()
         result = self.collection.insert_one(imovel_copy)
         return str(result.inserted_id)
@@ -37,7 +36,6 @@ class MongoRepository:
     def delete_imovel(self, imovel_id: str):
         self.collection.delete_one({"_id": ObjectId(imovel_id)})
     
-    # Métodos para Corretores
     def add_corretor(self, corretor: Dict[str, Any]) -> str:
         corretor_copy = corretor.copy()
         result = self.corretores_collection.insert_one(corretor_copy)
@@ -63,7 +61,6 @@ class MongoRepository:
     def delete_corretor(self, corretor_id: str):
         self.corretores_collection.delete_one({"_id": ObjectId(corretor_id)})
     
-    # Métodos para Cidades
     def add_cidade(self, cidade: Dict[str, Any]) -> str:
         cidade_copy = cidade.copy()
         result = self.cidades_collection.insert_one(cidade_copy)

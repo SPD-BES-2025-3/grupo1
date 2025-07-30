@@ -32,7 +32,6 @@ def get_preview_imoveis() -> List[Dict[str, Any]]:
 
 def display_imovel_card(imovel: Dict[str, Any], index: int = 0):
     """Exibe um cartão do imóvel"""
-    # Gerar key único usando ID do imóvel ou índice como fallback
     imovel_id = imovel.get('id', f'imovel_{index}')
     unique_key = f"detail_{imovel_id}_{index}"
     
@@ -43,17 +42,15 @@ def display_imovel_card(imovel: Dict[str, Any], index: int = 0):
             st.subheader(imovel.get('titulo', 'Sem título'))
             st.write(f"**ID:** {imovel.get('id', 'N/A')}")
             
-            # Descrição truncada
             descricao = imovel.get('descricao', '')
             if len(descricao) > 150:
                 descricao = descricao[:150] + "..."
             st.write(descricao)
             
-            # Especificações
             specs = imovel.get('especificacoes', [])
             if specs:
                 st.write("**Especificações:**")
-                for spec in specs[:3]:  # Mostra apenas as 3 primeiras
+                for spec in specs[:3]:  
                     st.write(f"• {spec}")
                 if len(specs) > 3:
                     st.write(f"... e mais {len(specs) - 3} especificações")
@@ -68,7 +65,7 @@ def display_imovel_card(imovel: Dict[str, Any], index: int = 0):
 def main():
     st.title("🏠 SPD Imóveis - Sistema Inteligente")
     
-    # Sidebar para navegação
+   
     st.sidebar.title("Navegação")
     page = st.sidebar.radio("Escolha uma página:", ["🏠 Preview", "💬 Chat", "⚙️ Gerenciar Imóveis", "🕷️ Crawler", "👔 Corretores", "🏙️ Cidades"])
     
@@ -79,7 +76,6 @@ def main():
         imoveis = get_preview_imoveis()
         
         if imoveis is None:
-            # Error already displayed by get_preview_imoveis()
             st.info("💡 Certifique-se de que a API está rodando:")
             st.code("python -m uvicorn main:app --host 0.0.0.0 --port 8001")
         elif imoveis:
@@ -104,25 +100,21 @@ def main():
         if "feedbacks" not in st.session_state:
             st.session_state.feedbacks = {}
         
-        # Exibir mensagens do chat
         for message in st.session_state.messages:
             with st.chat_message(message["role"]):
                 st.markdown(message["content"])
         
-        # Input do usuário
         if prompt := st.chat_input("Procure por imóveis... (ex: apartamento 3 quartos)"):
-            # Adicionar mensagem do usuário  
             st.session_state.messages.append({"role": "user", "content": prompt})
             with st.chat_message("user"):
                 st.markdown(prompt)
             
-            # Buscar imóveis (busca 10, mostra 5)
             with st.chat_message("assistant"):
                 with st.spinner("Buscando imóveis..."):
                     try:
                         search_response = requests.get(
                             f"{FASTAPI_BASE_URL}/search",
-                            params={"query": prompt, "n_results": 30}  # Buscar 30 imóveis para ter bastante opção
+                            params={"query": prompt, "n_results": 30} 
                         )
                         
                         if search_response.status_code == 200:
@@ -130,15 +122,13 @@ def main():
                             all_results = search_data.get('results', [])
                             
                             if all_results:
-                                # Dividir resultados: 5 para mostrar inicialmente, resto para re-ranking
                                 shown_results = all_results[:5]
-                                remaining_results = all_results[5:]  # Agora teremos até 25 imóveis para re-ranking!
+                                remaining_results = all_results[5:] 
                                 
-                                # Armazenar no state
                                 st.session_state.current_results = shown_results
                                 st.session_state.remaining_results = remaining_results  
                                 st.session_state.current_query = prompt
-                                st.session_state.feedbacks = {}  # Reset feedbacks
+                                st.session_state.feedbacks = {} 
                                 
                                 response_text = f"Encontrei **{len(shown_results)}** imóveis principais (de {len(all_results)} total):\n\n"
                                 
@@ -146,13 +136,11 @@ def main():
                                     response_text += f"**{i}. {imovel.get('titulo', 'Sem título')}**\n"
                                     response_text += f"📍 **ID:** {imovel.get('id', 'N/A')}\n"
                                     
-                                    # Descrição truncada
                                     desc = imovel.get('descricao', '')
                                     if len(desc) > 100:
                                         desc = desc[:100] + "..."
                                     response_text += f"📝 {desc}\n"
                                     
-                                    # Especificações principais
                                     specs = imovel.get('especificacoes', [])
                                     if specs:
                                         response_text += f"🏗️ **Especificações:** {', '.join(specs[:2])}"
@@ -175,13 +163,11 @@ def main():
                 st.markdown(response_text)
                 st.session_state.messages.append({"role": "assistant", "content": response_text})
         
-        # Sistema de Feedback e Re-ranking
         if st.session_state.current_results:
             st.markdown("---")
             st.subheader("🎯 Sistema de Feedback Inteligente")
             st.markdown("**Avalie os imóveis acima para melhorar suas próximas recomendações:**")
             
-            # Exibir imóveis com botões de feedback
             for i, imovel in enumerate(st.session_state.current_results):
                 imovel_id = imovel.get('id', f'imovel_{i}')
                 
@@ -203,7 +189,6 @@ def main():
                         st.error("Feedback registrado!")
                         st.rerun()
                 
-                # Mostrar feedback atual
                 current_feedback = st.session_state.feedbacks.get(imovel_id)
                 if current_feedback:
                     emoji = "👍" if current_feedback == "like" else "👎"
@@ -211,14 +196,12 @@ def main():
                 
                 st.divider()
             
-            # Botão Melhorar Busca
             col1, col2, col3 = st.columns([2, 3, 2])
             with col2:
                 if st.button("🚀 Melhorar Busca com IA", type="primary", use_container_width=True):
                     if st.session_state.feedbacks:
                         with st.spinner("🤖 Analisando seus gostos com Gemma3..."):
                             try:
-                                # Separar feedbacks
                                 liked_properties = [
                                     imovel for imovel in st.session_state.current_results 
                                     if st.session_state.feedbacks.get(imovel.get('id')) == "like"
@@ -228,7 +211,6 @@ def main():
                                     if st.session_state.feedbacks.get(imovel.get('id')) == "dislike"
                                 ]
                                 
-                                # Preparar dados para re-ranking
                                 rerank_data = {
                                     "query": st.session_state.current_query,
                                     "liked_properties": liked_properties,
@@ -236,7 +218,6 @@ def main():
                                     "remaining_properties": st.session_state.remaining_results
                                 }
                                 
-                                # Chamar API de re-ranking
                                 rerank_response = requests.post(
                                     f"{FASTAPI_BASE_URL}/rerank/",
                                     json=rerank_data
@@ -247,8 +228,7 @@ def main():
                                     selected_results = rerank_result.get('reranked_results', [])
                                     
                                     if selected_results:
-                                        # Adicionar resultado da seleção da IA ao chat
-                                        refined_text = f"🤖 **IA Gemma3 analisou seus gostos e SELECIONOU {len(selected_results)} imóveis dos 5 restantes:**\n\n"
+                                        refined_text = f"🤖 **IA analisou seus gostos e SELECIONOU {len(selected_results)} imóveis dos 5 restantes:**\n\n"
                                         
                                         for i, imovel in enumerate(selected_results, 1):
                                             refined_text += f"**{i}. {imovel.get('titulo', 'Sem título')}**\n"
@@ -260,7 +240,6 @@ def main():
                                                 desc = desc[:100] + "..."
                                             refined_text += f"📝 {desc}\n\n"
                                         
-                                        # Explicar estratégia da IA
                                         decision_reasoning = rerank_result.get('decision_reasoning', '')
                                         if decision_reasoning:
                                             refined_text += f"🎯 **Estratégia da IA:** {decision_reasoning}\n\n"
@@ -272,7 +251,6 @@ def main():
                                             "content": refined_text
                                         })
                                         
-                                        # Resetar feedback e atualizar resultados atuais
                                         st.session_state.feedbacks = {}
                                         st.session_state.current_results = selected_results
                                         st.session_state.remaining_results = []
@@ -292,18 +270,15 @@ def main():
     elif page == "⚙️ Gerenciar Imóveis":
         st.header("⚙️ Gerenciar Imóveis")
         
-        # Tabs para diferentes operações
         tab1, tab2, tab3, tab4 = st.tabs(["📝 Adicionar", "📋 Listar", "✏️ Editar", "🗑️ Excluir"])
         
         with tab1:
-            # Botão para adicionar imóveis de teste
             col1, col2 = st.columns([2, 1])
             with col2:
                 if st.button("🎲 Adicionar Imóveis de Teste", type="secondary", use_container_width=True):
                     with st.spinner("Gerando e inserindo imóveis de teste..."):
                         import random
                         
-                        # Lista de dados de teste ampliada
                         bairros = ["Centro", "Jardim América", "Setor Bueno", "Setor Marista", "Setor Oeste", 
                                   "Setor Sul", "Jardim Goiás", "Setor Nova Suíça", "Alphaville", "Park Lozandes",
                                   "Setor Coimbra", "Setor Pedro Ludovico", "Vila Nova", "Setor Universitário",
@@ -315,14 +290,12 @@ def main():
                         success_count = 0
                         total_imoveis = 100  # Criar 100 imóveis de teste para ter uma base robusta
                         
-                        # Criar barra de progresso
                         progress_bar = st.progress(0)
                         status_text = st.empty()
                         
                         for i in range(total_imoveis):
                             tipo = random.choice(tipos)
                             bairro = random.choice(bairros)
-                            # Variação mais realista baseada no tipo
                             if tipo == "Kitnet":
                                 quartos = 1
                                 area = random.randint(25, 45)
@@ -372,7 +345,6 @@ def main():
                                 f"{random.randint(0, 2)} vagas"
                             ]
                             
-                            # Adicionar características aleatórias
                             caracteristicas_possiveis = [
                                 "Piscina", "Churrasqueira", "Academia", "Salão de festas", 
                                 "Playground", "Portaria 24h", "Elevador", "Varanda gourmet",
@@ -397,12 +369,10 @@ def main():
                             except:
                                 pass
                             
-                            # Atualizar progresso
                             progress = (i + 1) / total_imoveis
                             progress_bar.progress(progress)
                             status_text.text(f"Processando: {i + 1}/{total_imoveis} imóveis...")
                         
-                        # Limpar indicadores de progresso
                         progress_bar.empty()
                         status_text.empty()
                         
@@ -414,15 +384,12 @@ def main():
                         else:
                             st.error("❌ Erro ao adicionar imóveis de teste")
             
-            # CRUD Anúncios - Formulário padronizado
             def ad_form():
                 mode = "Editar" if st.session_state.get('selected_ad') is not None else "Criar"
 
-                # Começa o formulário
                 with st.form(key="ad_form"):
                     st.subheader(f"{mode} Imóvel")
 
-                    # Carrega valores iniciais para edição
                     initial = {}
                     if st.session_state.get('selected_ad') is not None:
                         try:
@@ -434,11 +401,9 @@ def main():
                         except:
                             pass
 
-                    # Campos básicos
                     titulo = st.text_input("Título", value=initial.get('titulo', ''))
                     descricao = st.text_area("Descrição", value=initial.get('descricao', ''))
                     
-                    # Especificações estruturadas
                     col1, col2 = st.columns(2)
                     with col1:
                         preco = st.number_input(
@@ -474,14 +439,11 @@ def main():
                         placeholder="piscina, churrasqueira, jardim, portaria 24h"
                     )
 
-                    # Botão de envio
                     if st.form_submit_button(f"✅ {mode} Imóvel"):
-                        # Validação
                         if not titulo or not descricao:
                             st.error("⚠️ Título e descrição são obrigatórios!")
                             return
                         
-                        # Monta especificações
                         specs = []
                         if preco > 0:
                             specs.append(f"R$ {preco:,.2f}")
@@ -496,12 +458,10 @@ def main():
                         if vagas > 0:
                             specs.append(f"{vagas} vagas")
                         
-                        # Adiciona características extras
                         if caracteristicas.strip():
                             extras = [c.strip() for c in caracteristicas.split(",") if c.strip()]
                             specs.extend(extras)
                         
-                        # Monta payload
                         payload = {
                             "titulo": titulo,
                             "descricao": descricao,
@@ -509,17 +469,14 @@ def main():
                         }
                         
                         try:
-                            # Envia POST ou PUT conforme o modo
                             if st.session_state.get('selected_ad') is None:
                                 response = requests.post(f"{FASTAPI_BASE_URL}/imoveis/", json=payload)
                             else:
-                                # Para edição, seria necessário o ID do imóvel
                                 response = requests.post(f"{FASTAPI_BASE_URL}/imoveis/", json=payload)
                             
                             if response.status_code == 200:
                                 st.success(f"✅ Imóvel {mode.lower()} com sucesso!")
                                 st.balloons()
-                                # Reset do estado
                                 if 'selected_ad' in st.session_state:
                                     del st.session_state.selected_ad
                                 st.rerun()
@@ -528,7 +485,6 @@ def main():
                         except Exception as e:
                             st.error(f"🔌 Erro de conexão com a API: {str(e)}")
 
-            # Chama a função do formulário
             ad_form()
         
         with tab2:
@@ -559,7 +515,6 @@ def main():
         with tab3:
             st.subheader("Editar Imóvel")
             
-            # Busca por ID ou título
             search_method = st.radio("Buscar por:", ["ID", "Título"])
             
             if search_method == "ID":
@@ -569,7 +524,6 @@ def main():
             
             if st.button("🔍 Buscar Imóvel") and search_value:
                 try:
-                    # Buscar todos os imóveis para filtrar
                     response = requests.get(f"{FASTAPI_BASE_URL}/imoveis/")
                     if response.status_code == 200:
                         imoveis = response.json()
@@ -621,7 +575,7 @@ def main():
                                     if response.status_code == 200:
                                         st.success("✅ Imóvel atualizado com sucesso!")
                                         del st.session_state.edit_imovel
-                                        time.sleep(0.5)  # Small delay to ensure update is processed
+                                        time.sleep(0.5) 
                                         st.rerun()
                                     else:
                                         st.error(f"❌ Erro ao atualizar: {response.text}")
@@ -638,7 +592,6 @@ def main():
         with tab4:
             st.subheader("Excluir Imóvel")
             
-            # Lista de imóveis para exclusão
             try:
                 response = requests.get(f"{FASTAPI_BASE_URL}/imoveis/")
                 if response.status_code == 200:
@@ -660,7 +613,6 @@ def main():
                                     if st.button("🗑️ Excluir", key=f"delete_{imovel_id}", type="secondary"):
                                         st.session_state[f"confirm_delete_{imovel_id}"] = True
                                 
-                                # Confirmação de exclusão
                                 if st.session_state.get(f"confirm_delete_{imovel_id}", False):
                                     st.error(f"Tem certeza que deseja excluir: **{imovel.get('titulo', 'Sem título')}**?")
                                     col_yes, col_no = st.columns(2)
@@ -694,7 +646,6 @@ def main():
         st.header("🕷️ Crawler de Imóveis")
         st.write("Use esta ferramenta para buscar e importar imóveis do ChavesNaMao.com.br")
         
-        # Formulário de configuração do crawler
         with st.form("crawler_config"):
             st.subheader("Configurações de Busca")
             
@@ -723,11 +674,9 @@ def main():
             
             crawl_button = st.form_submit_button("🚀 Iniciar Crawler", type="primary", use_container_width=True)
         
-        # Processar crawler
         if crawl_button:
             st.info("🔄 Iniciando processo de crawling...")
             
-            # Preparar parâmetros
             search_params = {
                 "transaction_type": type_listing,
                 "state": state.lower(),
@@ -735,7 +684,6 @@ def main():
                 "max_results": max_results
             }
             
-            # Container para progresso
             progress_container = st.container()
             
             with progress_container:
@@ -743,27 +691,22 @@ def main():
                 status_text = st.empty()
                 
                 try:
-                    # Importar e executar o crawler
                     import sys
                     import os
                     import asyncio
                     import json
                     
-                    # Adicionar pasta crawler ao path
                     crawler_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'crawler')
                     if crawler_path not in sys.path:
                         sys.path.insert(0, crawler_path)
                     
                     from crawler_chavesnamao import search_properties
                     
-                    # Mostrar URL base
                     status_text.text(f"📍 Buscando em ChavesNaMao: {city}/{state} - {type_listing}")
                     
-                    # Executar crawler
                     status_text.text("🕷️ Executando crawler...")
                     progress_bar.progress(25)
                     
-                    # Executar busca de forma assíncrona
                     loop = asyncio.new_event_loop()
                     asyncio.set_event_loop(loop)
                     listings = loop.run_until_complete(search_properties(search_params))
@@ -776,7 +719,6 @@ def main():
                     status_text.text(f"✅ {len(listings)} imóveis encontrados!")
                     progress_bar.progress(50)
                     
-                    # Processar e inserir na API
                     status_text.text("📤 Inserindo imóveis no sistema...")
                     
                     success_count = 0
@@ -784,43 +726,33 @@ def main():
                     
                     for i, listing in enumerate(listings):
                         try:
-                            # Converter dados do crawler para formato da API
                             especificacoes = []
                             
-                            # Adicionar preço se disponível
                             if listing.get('price_text'):
                                 especificacoes.append(listing['price_text'])
                             elif listing.get('price'):
                                 especificacoes.append(f"R$ {listing['price']:,.2f}")
                             
-                            # Adicionar área
                             if listing.get('area'):
                                 especificacoes.append(f"{listing['area']}m²")
                             
-                            # Adicionar quartos
                             if listing.get('bedrooms'):
                                 especificacoes.append(f"{listing['bedrooms']} quartos")
                             
-                            # Adicionar banheiros
                             if listing.get('bathrooms'):
                                 especificacoes.append(f"{listing['bathrooms']} banheiros")
                             
-                            # Adicionar vagas
                             if listing.get('parking_spaces'):
                                 especificacoes.append(f"{listing['parking_spaces']} vagas")
                             
-                            # Adicionar tipo de imóvel
                             if listing.get('property_type'):
                                 especificacoes.append(listing['property_type'])
                             
-                            # Adicionar características
                             if listing.get('features'):
                                 especificacoes.extend(listing['features'][:5])  # Limitar a 5 características
                             
-                            # Preparar título
                             titulo = listing.get('title') or f"{listing.get('property_type', 'Imóvel')} - {listing.get('neighborhood', 'Sem bairro')}"
                             
-                            # Preparar descrição
                             descricao_parts = []
                             if listing.get('description'):
                                 descricao_parts.append(listing['description'])
@@ -842,14 +774,12 @@ def main():
                             
                             descricao = " | ".join(descricao_parts) if descricao_parts else "Sem descrição disponível"
                             
-                            # Payload para API
                             payload = {
                                 "titulo": titulo[:200],  # Limitar tamanho
                                 "descricao": descricao[:1000],  # Limitar tamanho
                                 "especificacoes": especificacoes
                             }
                             
-                            # Enviar para API
                             response = requests.post(f"{FASTAPI_BASE_URL}/imoveis/", json=payload)
                             
                             if response.status_code == 200:
@@ -858,7 +788,6 @@ def main():
                                 error_count += 1
                                 st.warning(f"⚠️ Erro ao inserir: {titulo[:50]}...")
                             
-                            # Atualizar progresso
                             progress = 50 + int((i + 1) / len(listings) * 50)
                             progress_bar.progress(progress)
                             status_text.text(f"📤 Processando {i+1}/{len(listings)} imóveis...")
@@ -867,7 +796,6 @@ def main():
                             error_count += 1
                             st.warning(f"⚠️ Erro ao processar imóvel: {str(e)}")
                     
-                    # Resultado final
                     progress_bar.progress(100)
                     status_text.empty()
                     
@@ -876,7 +804,6 @@ def main():
                     if error_count > 0:
                         st.warning(f"⚠️ {error_count} imóveis não puderam ser inseridos.")
                     
-                    # Mostrar preview dos imóveis inseridos
                     if success_count > 0:
                         with st.expander("📋 Ver imóveis processados"):
                             for listing in listings[:5]:  # Mostrar apenas 5 primeiros
@@ -903,7 +830,6 @@ def main():
     elif page == "👔 Corretores":
         st.header("👔 Gestão de Corretores")
         
-        # Tabs para operações CRUD
         tab1, tab2, tab3, tab4 = st.tabs(["📋 Listar", "➕ Adicionar", "✏️ Editar", "🗑️ Excluir"])
         
         with tab1:
@@ -956,7 +882,6 @@ def main():
                     ["Residencial", "Comercial", "Rural", "Industrial", "Lançamentos", "Temporada"]
                 )
                 
-                # Buscar cidades disponíveis
                 cidades_disponiveis = []
                 try:
                     response = requests.get(f"{FASTAPI_BASE_URL}/cidades/")
@@ -1005,7 +930,6 @@ def main():
                     corretores = response.json()
                     
                     if corretores:
-                        # Seletor de corretor
                         corretor_selecionado = st.selectbox(
                             "Selecione um corretor para editar",
                             options=corretores,
@@ -1026,7 +950,6 @@ def main():
                                     default=corretor_selecionado.get('especialidades', [])
                                 )
                                 
-                                # Buscar cidades disponíveis
                                 cidades_disponiveis = []
                                 try:
                                     cidades_response = requests.get(f"{FASTAPI_BASE_URL}/cidades/")
@@ -1110,7 +1033,6 @@ def main():
                                     if st.button("🗑️ Excluir", key=f"delete_corretor_{corretor_id}", type="secondary"):
                                         st.session_state[f"confirm_delete_corretor_{corretor_id}"] = True
                                 
-                                # Confirmação de exclusão
                                 if st.session_state.get(f"confirm_delete_corretor_{corretor_id}", False):
                                     st.error(f"Tem certeza que deseja excluir: **{corretor.get('nome', 'Sem nome')}**?")
                                     col_yes, col_no = st.columns(2)
@@ -1144,13 +1066,11 @@ def main():
     elif page == "🏙️ Cidades":
         st.header("🏙️ Gestão de Cidades")
         
-        # Tabs para operações CRUD
         tab1, tab2, tab3, tab4 = st.tabs(["📋 Listar", "➕ Adicionar", "✏️ Editar", "🗑️ Excluir"])
         
         with tab1:
             st.subheader("Lista de Cidades")
             
-            # Filtro por estado
             col1, col2 = st.columns([1, 3])
             with col1:
                 estado_filtro = st.selectbox(
@@ -1263,7 +1183,6 @@ def main():
                     cidades = response.json()
                     
                     if cidades:
-                        # Agrupar cidades por estado para facilitar seleção
                         cidades_por_estado = {}
                         for cidade in cidades:
                             estado = cidade.get('estado', 'N/A')
@@ -1271,14 +1190,12 @@ def main():
                                 cidades_por_estado[estado] = []
                             cidades_por_estado[estado].append(cidade)
                         
-                        # Seletor de estado primeiro
                         estado_selecionado = st.selectbox(
                             "Selecione o estado",
                             options=sorted(cidades_por_estado.keys())
                         )
                         
                         if estado_selecionado:
-                            # Seletor de cidade
                             cidade_selecionada = st.selectbox(
                                 "Selecione a cidade para editar",
                                 options=cidades_por_estado[estado_selecionado],

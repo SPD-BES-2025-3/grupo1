@@ -38,12 +38,10 @@ def update_corretor(corretor_id: str, corretor: Corretor):
     
     mongo_repo = MongoRepository(uri=MONGO_URI, db_name=MONGO_DB_NAME)
     
-    # Verificar se corretor existe
     db_corretor = mongo_repo.get_corretor_by_id(corretor_id)
     if db_corretor is None:
         raise HTTPException(status_code=404, detail="Corretor not found")
     
-    # Atualizar no MongoDB
     corretor_dict = corretor.model_dump()
     mongo_repo.update_corretor(corretor_id, corretor_dict)
     
@@ -55,12 +53,10 @@ def delete_corretor(corretor_id: str):
     
     mongo_repo = MongoRepository(uri=MONGO_URI, db_name=MONGO_DB_NAME)
     
-    # Verificar se corretor existe
     db_corretor = mongo_repo.get_corretor_by_id(corretor_id)
     if db_corretor is None:
         raise HTTPException(status_code=404, detail="Corretor not found")
-    
-    # Remover do MongoDB
+
     mongo_repo.delete_corretor(corretor_id)
     
     return {"message": "Corretor deleted successfully", "id": corretor_id}

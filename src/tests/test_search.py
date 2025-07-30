@@ -18,7 +18,6 @@ class TestSearchRoutes:
     def test_search_imoveis_success(self, mock_search_class, mock_chroma_class, 
                                    mock_mongo_class, client, sample_imovel_in_db):
         """Testa busca semântica de imóveis"""
-        # Configurar mocks
         mock_mongo = Mock()
         mock_mongo_class.return_value = mock_mongo
         
@@ -35,10 +34,8 @@ class TestSearchRoutes:
         }
         mock_search_class.return_value = mock_search
         
-        # Fazer requisição
         response = client.get("/search/?query=casa com piscina&n_results=5")
         
-        # Verificações
         assert response.status_code == 200
         data = response.json()
         assert "results" in data
@@ -51,7 +48,6 @@ class TestSearchRoutes:
     def test_search_imoveis_no_results(self, mock_search_class, mock_chroma_class, 
                                       mock_mongo_class, client):
         """Testa busca sem resultados"""
-        # Configurar mocks
         mock_mongo = Mock()
         mock_mongo_class.return_value = mock_mongo
         
@@ -68,10 +64,8 @@ class TestSearchRoutes:
         }
         mock_search_class.return_value = mock_search
         
-        # Fazer requisição
         response = client.get("/search/?query=castelo medieval")
         
-        # Verificações
         assert response.status_code == 200
         data = response.json()
         assert data["results"] == []
@@ -80,7 +74,6 @@ class TestSearchRoutes:
     @patch('src.app.routers.search.LLMRerankingService')
     def test_rerank_with_feedback_success(self, mock_llm_class, client, sample_imovel_in_db):
         """Testa re-ranking com feedback do usuário"""
-        # Configurar mock
         mock_llm = Mock()
         mock_llm.rerank_properties.return_value = {
             "decision_reasoning": "Selecionei imóveis similares aos curtidos",
@@ -91,7 +84,6 @@ class TestSearchRoutes:
         }
         mock_llm_class.return_value = mock_llm
         
-        # Dados da requisição
         rerank_data = {
             "query": "apartamento 3 quartos",
             "liked_properties": [sample_imovel_in_db],
@@ -106,10 +98,8 @@ class TestSearchRoutes:
             ]
         }
         
-        # Fazer requisição
         response = client.post("/rerank/", json=rerank_data)
         
-        # Verificações
         assert response.status_code == 200
         data = response.json()
         assert "decision_reasoning" in data
@@ -120,7 +110,6 @@ class TestSearchRoutes:
     @patch('src.app.routers.search.LLMRerankingService')
     def test_rerank_with_llm_failure(self, mock_llm_class, client, sample_imovel_in_db):
         """Testa re-ranking quando LLM falha (usa fallback)"""
-        # Configurar mock para simular falha
         mock_llm = Mock()
         mock_llm.rerank_properties.return_value = {
             "decision_reasoning": "IA não configurada - usando seleção automática",
@@ -131,7 +120,6 @@ class TestSearchRoutes:
         }
         mock_llm_class.return_value = mock_llm
         
-        # Dados da requisição
         rerank_data = {
             "query": "casa com piscina",
             "liked_properties": [],
@@ -146,10 +134,8 @@ class TestSearchRoutes:
             ]
         }
         
-        # Fazer requisição
         response = client.post("/rerank/", json=rerank_data)
         
-        # Verificações
         assert response.status_code == 200
         data = response.json()
         assert "Fallback" in data["selected_properties"][0]["reason"] or "IA não configurada" in data["decision_reasoning"]

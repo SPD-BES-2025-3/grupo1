@@ -7,15 +7,13 @@ class TestCidadesRoutes:
     @patch('src.app.routers.cidades.MongoRepository')
     def test_create_cidade_success(self, mock_mongo_class, client, sample_cidade):
         """Testa criação bem-sucedida de uma cidade"""
-        # Configurar mock
+
         mock_mongo = Mock()
         mock_mongo.add_cidade.return_value = "507f1f77bcf86cd799439013"
         mock_mongo_class.return_value = mock_mongo
         
-        # Fazer requisição
         response = client.post("/cidades/", json=sample_cidade)
         
-        # Verificações
         assert response.status_code == 200
         data = response.json()
         assert data["nome"] == sample_cidade["nome"]
@@ -23,21 +21,17 @@ class TestCidadesRoutes:
         assert data["regiao"] == sample_cidade["regiao"]
         assert data["id"] == "507f1f77bcf86cd799439013"
         
-        # Verificar se o método foi chamado
         mock_mongo.add_cidade.assert_called_once()
     
     @patch('src.app.routers.cidades.MongoRepository')
     def test_read_cidades_success(self, mock_mongo_class, client, sample_cidade_in_db):
         """Testa listagem de cidades"""
-        # Configurar mock
         mock_mongo = Mock()
         mock_mongo.get_all_cidades.return_value = [sample_cidade_in_db]
         mock_mongo_class.return_value = mock_mongo
-        
-        # Fazer requisição
+    
         response = client.get("/cidades/")
         
-        # Verificações
         assert response.status_code == 200
         data = response.json()
         assert len(data) == 1
@@ -48,16 +42,14 @@ class TestCidadesRoutes:
     @patch('src.app.routers.cidades.MongoRepository')
     def test_read_cidade_by_id_success(self, mock_mongo_class, client, sample_cidade_in_db):
         """Testa busca de cidade por ID"""
-        # Configurar mock
+        
         mock_mongo = Mock()
         mock_mongo.get_cidade_by_id.return_value = sample_cidade_in_db
         mock_mongo_class.return_value = mock_mongo
         
-        # Fazer requisição
         cidade_id = sample_cidade_in_db["id"]
         response = client.get(f"/cidades/{cidade_id}")
         
-        # Verificações
         assert response.status_code == 200
         data = response.json()
         assert data["id"] == cidade_id
@@ -67,65 +59,53 @@ class TestCidadesRoutes:
     @patch('src.app.routers.cidades.MongoRepository')
     def test_read_cidade_by_id_not_found(self, mock_mongo_class, client):
         """Testa busca de cidade inexistente"""
-        # Configurar mock
         mock_mongo = Mock()
         mock_mongo.get_cidade_by_id.return_value = None
         mock_mongo_class.return_value = mock_mongo
         
-        # Fazer requisição
         response = client.get("/cidades/507f1f77bcf86cd799439999")
         
-        # Verificações
         assert response.status_code == 404
         assert response.json()["detail"] == "Cidade not found"
     
     @patch('src.app.routers.cidades.MongoRepository')
     def test_update_cidade_success(self, mock_mongo_class, client, sample_cidade, sample_cidade_in_db):
         """Testa atualização de cidade"""
-        # Configurar mock
         mock_mongo = Mock()
         mock_mongo.get_cidade_by_id.return_value = sample_cidade_in_db
         mock_mongo_class.return_value = mock_mongo
         
-        # Fazer requisição
         cidade_id = sample_cidade_in_db["id"]
         updated_data = {**sample_cidade, "populacao": 1600000}
         response = client.put(f"/cidades/{cidade_id}", json=updated_data)
-        
-        # Verificações
+
         assert response.status_code == 200
         data = response.json()
         assert data["populacao"] == 1600000
         assert data["id"] == cidade_id
         
-        # Verificar chamada
         mock_mongo.update_cidade.assert_called_once()
     
     @patch('src.app.routers.cidades.MongoRepository')
     def test_delete_cidade_success(self, mock_mongo_class, client, sample_cidade_in_db):
         """Testa exclusão de cidade"""
-        # Configurar mock
         mock_mongo = Mock()
         mock_mongo.get_cidade_by_id.return_value = sample_cidade_in_db
         mock_mongo_class.return_value = mock_mongo
         
-        # Fazer requisição
         cidade_id = sample_cidade_in_db["id"]
         response = client.delete(f"/cidades/{cidade_id}")
         
-        # Verificações
         assert response.status_code == 200
         data = response.json()
         assert data["message"] == "Cidade deleted successfully"
         assert data["id"] == cidade_id
         
-        # Verificar chamada
         mock_mongo.delete_cidade.assert_called_once_with(cidade_id)
     
     @patch('src.app.routers.cidades.MongoRepository')
     def test_read_cidades_by_estado_success(self, mock_mongo_class, client, sample_cidade_in_db):
         """Testa busca de cidades por estado"""
-        # Configurar mock
         mock_mongo = Mock()
         mock_mongo.get_all_cidades.return_value = [
             sample_cidade_in_db,
@@ -144,13 +124,11 @@ class TestCidadesRoutes:
         ]
         mock_mongo_class.return_value = mock_mongo
         
-        # Fazer requisição
         response = client.get("/cidades/estado/GO")
         
-        # Verificações
         assert response.status_code == 200
         data = response.json()
-        assert len(data) == 2  # Apenas cidades de GO
+        assert len(data) == 2 
         assert all(cidade["estado"] == "GO" for cidade in data)
         assert data[0]["nome"] == "Goiânia"
         assert data[1]["nome"] == "Anápolis"
@@ -158,7 +136,6 @@ class TestCidadesRoutes:
     @patch('src.app.routers.cidades.MongoRepository')
     def test_read_cidades_by_estado_empty(self, mock_mongo_class, client):
         """Testa busca de cidades por estado sem resultados"""
-        # Configurar mock
         mock_mongo = Mock()
         mock_mongo.get_all_cidades.return_value = [
             {
@@ -170,47 +147,37 @@ class TestCidadesRoutes:
         ]
         mock_mongo_class.return_value = mock_mongo
         
-        # Fazer requisição
         response = client.get("/cidades/estado/AC")
         
-        # Verificações
         assert response.status_code == 200
         data = response.json()
         assert len(data) == 0
     
     def test_cidade_validation(self, client):
         """Testa validação de dados da cidade"""
-        # Dados inválidos (sem campos obrigatórios)
         invalid_cidade = {
             "nome": "Goiânia"
-            # Falta: estado
+
         }
         
-        # Fazer requisição
         response = client.post("/cidades/", json=invalid_cidade)
         
-        # Verificações
         assert response.status_code == 422  # Unprocessable Entity
     
     def test_cidade_minimal_data(self, client):
         """Testa criação de cidade com dados mínimos"""
-        # Dados mínimos válidos
         minimal_cidade = {
             "nome": "Aparecida de Goiânia",
             "estado": "GO"
-            # Campos opcionais: regiao, populacao, area_km2
         }
         
-        # Configurar mock
         with patch('src.app.routers.cidades.MongoRepository') as mock_mongo_class:
             mock_mongo = Mock()
             mock_mongo.add_cidade.return_value = "507f1f77bcf86cd799439016"
             mock_mongo_class.return_value = mock_mongo
             
-            # Fazer requisição
             response = client.post("/cidades/", json=minimal_cidade)
             
-            # Verificações
             assert response.status_code == 200
             data = response.json()
             assert data["nome"] == minimal_cidade["nome"]

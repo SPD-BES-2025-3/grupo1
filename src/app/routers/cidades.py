@@ -38,12 +38,10 @@ def update_cidade(cidade_id: str, cidade: Cidade):
     
     mongo_repo = MongoRepository(uri=MONGO_URI, db_name=MONGO_DB_NAME)
     
-    # Verificar se cidade existe
     db_cidade = mongo_repo.get_cidade_by_id(cidade_id)
     if db_cidade is None:
         raise HTTPException(status_code=404, detail="Cidade not found")
     
-    # Atualizar no MongoDB
     cidade_dict = cidade.model_dump()
     mongo_repo.update_cidade(cidade_id, cidade_dict)
     
@@ -55,12 +53,10 @@ def delete_cidade(cidade_id: str):
     
     mongo_repo = MongoRepository(uri=MONGO_URI, db_name=MONGO_DB_NAME)
     
-    # Verificar se cidade existe
     db_cidade = mongo_repo.get_cidade_by_id(cidade_id)
     if db_cidade is None:
         raise HTTPException(status_code=404, detail="Cidade not found")
     
-    # Remover do MongoDB
     mongo_repo.delete_cidade(cidade_id)
     
     return {"message": "Cidade deleted successfully", "id": cidade_id}
@@ -73,7 +69,6 @@ def read_cidades_by_estado(estado: str):
     mongo_repo = MongoRepository(uri=MONGO_URI, db_name=MONGO_DB_NAME)
     all_cidades = mongo_repo.get_all_cidades()
     
-    # Filtrar por estado
     cidades_estado = [c for c in all_cidades if c.get("estado", "").upper() == estado.upper()]
     
     return cidades_estado

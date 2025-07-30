@@ -142,7 +142,6 @@ RESPOSTA (JSON válido):
         Parse da resposta JSON da LLM - retorna o objeto completo
         """
         try:
-            # Limpar possível texto extra antes/depois do JSON
             start_idx = llm_response.find('{')
             end_idx = llm_response.rfind('}') + 1
             
@@ -150,7 +149,6 @@ RESPOSTA (JSON válido):
                 json_str = llm_response[start_idx:end_idx]
                 parsed = json.loads(json_str)
                 
-                # Retornar o objeto completo com decision_reasoning, should_show_more, etc.
                 return parsed
             else:
                 logger.error("JSON não encontrado na resposta da LLM")

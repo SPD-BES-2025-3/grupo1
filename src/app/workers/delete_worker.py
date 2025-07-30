@@ -46,11 +46,11 @@ class DeleteWorker:
     
     def start(self):
         """Inicia o worker para processar mensagens de exclusão"""
-        print(f"[DELETE WORKER] 🚀 Iniciado - Aguardando mensagens na queue '{self.queue_name}'")
+        print(f"[DELETE WORKER] Iniciado - Aguardando mensagens na queue '{self.queue_name}'")
         
         while True:
             try:
-                # Buscar mensagem da queue (timeout de 5 segundos)
+                # (timeout de 5 segundos)
                 message = self.message_broker.get_message(self.queue_name, timeout=5)
                 
                 if message:
@@ -64,7 +64,7 @@ class DeleteWorker:
                     time.sleep(1)
                     
             except KeyboardInterrupt:
-                print(f"[DELETE WORKER] 🛑 Worker interrompido pelo usuário")
+                print(f"[DELETE WORKER] Worker interrompido pelo usuário")
                 break
             except Exception as e:
                 print(f"[DELETE WORKER] ❌ Erro no worker: {e}")
