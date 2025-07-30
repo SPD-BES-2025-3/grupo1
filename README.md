@@ -119,7 +119,7 @@ graph TD
     
     LRS --> P[Formata um prompt para o LLM contendo a query<br>e os detalhes dos imóveis encontrados];
     
-    P --> LLM[API do LLM Externo<br>(ex: OpenAI, Google AI)];
+    P --> LLM[API do LLM Externo<br>ex: OpenAI, Google AI];
     LLM --> Reordered[LLM retorna a lista de imóveis<br>reordenada pela relevância percebida];
     
     Reordered --> FS[Final Service / Router];
