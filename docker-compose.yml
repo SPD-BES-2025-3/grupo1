@@ -1,0 +1,132 @@
+services:
+  mongodb:
+    image: mongo:latest
+    container_name: mongo_db
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  chromadb:
+    image: chromadb/chroma:latest
+    container_name: chroma_db
+    ports:
+      - "7777:7777"
+    volumes:
+      - chroma_data:/chroma
+    restart: unless-stopped
+    environment:
+      - CHROMA_HOST=0.0.0.0
+      - CHROMA_PORT=7777
+
+  redis:
+    image: redis:7-alpine
+    container_name: redis_broker
+    ports:
+      - "6890:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  api:
+    build: .
+    container_name: spd_api
+    ports:
+      - "8001:8001"
+    environment:
+      - MONGO_CONNECTION_STRING=mongodb://mongodb:27017/
+      - MONGO_DATABASE_NAME=spd_imoveis
+      - CHROMA_HOST=chromadb
+      - CHROMA_PORT=7777
+      - CHROMA_COLLECTION_NAME=imoveis
+      - REDIS_URL=redis://redis:6379
+      - EMBEDDING_MODEL_NAME=all-MiniLM-L6-v2
+      - OLLAMA_URL=http://ollama:11434
+      - DEBUG=true
+    volumes:
+      - ./chroma_db:/app/chroma_db
+      - ./models:/app/models
+    depends_on:
+      - mongodb
+      - chromadb
+      - redis
+      - ollama
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  worker:
+    build: .
+    container_name: spd_worker
+    environment:
+      - MONGO_CONNECTION_STRING=mongodb://mongodb:27017/
+      - MONGO_DATABASE_NAME=spd_imoveis
+      - CHROMA_HOST=chromadb
+      - CHROMA_PORT=7777
+      - CHROMA_COLLECTION_NAME=imoveis
+      - REDIS_URL=redis://redis:6379
+      - EMBEDDING_MODEL_NAME=all-MiniLM-L6-v2
+    volumes:
+      - ./chroma_db:/app/chroma_db
+      - ./models:/app/models
+    depends_on:
+      - mongodb
+      - chromadb
+      - redis
+    restart: unless-stopped
+    command: ["python", "single_worker.py"]
+
+  streamlit:
+    build:
+      context: .
+      dockerfile: Dockerfile.streamlit
+    container_name: spd_streamlit
+    ports:
+      - "8501:8501"
+    environment:
+      - API_BASE_URL=http://api:8001
+    depends_on:
+      - api
+    restart: unless-stopped
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama_service
+    ports:
+      - "11435:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+      - ./ollama-entrypoint-v2.sh:/entrypoint.sh
+    restart: unless-stopped
+    environment:
+      - OLLAMA_KEEP_ALIVE=5m
+      - OLLAMA_NUM_PARALLEL=1
+      - OLLAMA_MAX_LOADED_MODELS=1
+      - OLLAMA_NUM_GPU=0  # Desabilita GPU para economizar recursos
+    entrypoint: ["/bin/bash", "/entrypoint.sh"]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11434/api/tags"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  mongo_data:
+  chroma_data:
+  redis_data:
+  ollama_data:
