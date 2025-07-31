@@ -66,6 +66,7 @@ class CreateWorker:
         """Inicia o worker para processar mensagens de criação"""
         print(f"[CREATE WORKER] Iniciado - Aguardando mensagens na queue '{self.queue_name}'")
         
+        #Alterar aqui 
         while True:
             try:
                 # Buscar mensagem da queue (timeout de 5 segundos)
