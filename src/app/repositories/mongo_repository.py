@@ -2,6 +2,7 @@ from pymongo import MongoClient
 from bson import ObjectId
 from typing import List, Dict, Any
 from ..models import ImovelInDB
+import redis
 
 class MongoRepository:
     def __init__(self, uri: str, db_name: str):
@@ -10,10 +11,16 @@ class MongoRepository:
         self.collection = self.db.imoveis
         self.corretores_collection = self.db.corretores
         self.cidades_collection = self.db.cidades
+        self.redis = redis.Redis(host='localhost', port=6379, decode_responses=True)
 
     def add_imovel(self, imovel: Dict[str, Any]) -> str:
         imovel_copy = imovel.copy()
         result = self.collection.insert_one(imovel_copy)
+
+        if result.inserted_id:
+            # Publish the creation event to Redis
+            self.redis.publish('imoveis.create', str(result.inserted_id))
+
         return str(result.inserted_id)
 
     def get_imovel_by_id(self, imovel_id: str) -> Dict[str, Any]:
@@ -32,9 +39,13 @@ class MongoRepository:
 
     def update_imovel(self, imovel_id: str, imovel: Dict[str, Any]):
         self.collection.update_one({"_id": ObjectId(imovel_id)}, {"$set": imovel})
+        # Publish the update event to Redis
+        self.redis.publish('imoveis.update', str(imovel_id))
 
     def delete_imovel(self, imovel_id: str):
         self.collection.delete_one({"_id": ObjectId(imovel_id)})
+        # Publish the delete event to Redis
+        self.redis.publish('imoveis.delete', str(imovel_id))
     
     def add_corretor(self, corretor: Dict[str, Any]) -> str:
         corretor_copy = corretor.copy()
