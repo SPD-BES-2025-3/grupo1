@@ -1,0 +1,5 @@
+2025-07-30 10:12:15,419 - INFO - Using target URL: https://www.62imoveis.com.br/aluguel/go/goiania/imoveis
+2025-07-30 10:12:15,457 - INFO - Fetching listings page: https://www.62imoveis.com.br/aluguel/go/goiania/imoveis
+2025-07-30 10:12:16,584 - INFO - HTTP Request: GET https://www.62imoveis.com.br/aluguel/go/goiania/imoveis "HTTP/1.1 200 OK"
+2025-07-30 10:12:16,736 - ERROR - Could not find the main listings container.
+2025-07-30 10:12:16,737 - ERROR - No listings found on the main page. Exiting.
