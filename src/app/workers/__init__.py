@@ -1,1 +1,0 @@
-# Workers para processamento assíncrono de eventos de imóveis

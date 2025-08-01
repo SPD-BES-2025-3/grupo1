@@ -4,8 +4,9 @@ from ..models import Imovel, ImovelInDB
 from ..database import get_mongo_repo, get_chroma_repo
 from ..services.indexing_service import IndexingService
 from ..services.embedding_service import EmbeddingService
-from ..services.message_broker_service import MessageBrokerService
 from ..config import REDIS_URL
+import redis
+import json
 
 router = APIRouter()
 
@@ -27,7 +28,7 @@ def sync_single_imovel(imovel_id: str):
         
         from ..models import ImovelInDB
         imovel = ImovelInDB(
-            id=ObjectId(imovel_data["id"]),
+            id=str(imovel_data["id"]),
             titulo=imovel_data["titulo"],
             descricao=imovel_data["descricao"],
             especificacoes=imovel_data.get("especificacoes", [])
@@ -68,7 +69,7 @@ def sync_mongo_to_chroma():
         for data in imoveis_data:
             try:
                 imovel = ImovelInDB(
-                    id=ObjectId(data["id"]),
+                    id=str(data["id"]),
                     titulo=data["titulo"],
                     descricao=data["descricao"],
                     especificacoes=data.get("especificacoes", [])
@@ -108,12 +109,13 @@ def create_imovel(imovel: Imovel):
     imovel_dict = imovel.model_dump()
     imovel_id = mongo_repo.add_imovel(imovel_dict) 
     
-    message_broker = MessageBrokerService(redis_url=REDIS_URL)
-    message_broker.publish_imovel_event(
-        event="imovel_created",
-        imovel_id=imovel_id,
-        payload=imovel_dict
-    )
+    # Publish to Redis
+    r = redis.from_url(REDIS_URL)
+    r.publish("imoveis.create", json.dumps({
+        "_id": imovel_id,
+        "descricao": imovel_dict["descricao"],
+        **imovel_dict
+    }))
     
     return {**imovel_dict, "id": imovel_id}
 
@@ -150,17 +152,42 @@ def update_imovel(imovel_id: str, imovel: Imovel):
     imovel_dict = imovel.model_dump()
     mongo_repo.update_imovel(imovel_id, imovel_dict)
     
-    message_broker = MessageBrokerService(redis_url=REDIS_URL)
-    message_broker.publish_imovel_event(
-        event="imovel_updated",
-        imovel_id=imovel_id,
-        payload={
-            "old_data": db_imovel,
-            "new_data": imovel_dict
-        }
-    )
+    # Publish to Redis
+    r = redis.from_url(REDIS_URL)
+    r.publish("imoveis.update", json.dumps({
+        "_id": imovel_id,
+        "descricao": imovel_dict["descricao"],
+        **imovel_dict
+    }))
     
     return {**imovel_dict, "id": imovel_id}
+
+@router.delete("/imoveis/all")
+def delete_all_imoveis():
+    """Limpa todos os imóveis do MongoDB"""
+    from ..repositories.mongo_repository import MongoRepository
+    from ..config import MONGO_URI, MONGO_DB_NAME
+    
+    mongo_repo = MongoRepository(uri=MONGO_URI, db_name=MONGO_DB_NAME)
+    
+    # Conta quantos imóveis existem antes de deletar
+    imoveis_antes = mongo_repo.get_all_imoveis()
+    count_antes = len(imoveis_antes)
+    
+    # Limpa a collection
+    mongo_repo.collection.delete_many({})
+    
+    # Publish to Redis
+    r = redis.from_url(REDIS_URL)
+    r.publish("imoveis.clear", json.dumps({
+        "action": "clear_all",
+        "deleted_count": count_antes
+    }))
+    
+    return {
+        "message": f"Todos os imóveis foram removidos do MongoDB", 
+        "deleted_count": count_antes
+    }
 
 @router.delete("/imoveis/{imovel_id}")
 def delete_imovel(imovel_id: str):
@@ -175,11 +202,10 @@ def delete_imovel(imovel_id: str):
     
     mongo_repo.delete_imovel(imovel_id)
     
-    message_broker = MessageBrokerService(redis_url=REDIS_URL)
-    message_broker.publish_imovel_event(
-        event="imovel_deleted",
-        imovel_id=imovel_id,
-        payload={"deleted_data": db_imovel}
-    )
+    # Publish to Redis
+    r = redis.from_url(REDIS_URL)
+    r.publish("imoveis.delete", json.dumps({
+        "_id": imovel_id
+    }))
     
     return {"message": "Imovel deleted successfully", "id": imovel_id}

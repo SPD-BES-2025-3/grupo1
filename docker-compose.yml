@@ -43,17 +43,16 @@ services:
   api:
     build: .
     container_name: spd_api
-    ports:
-      - "8001:8001"
+    network_mode: host
     environment:
-      - MONGO_CONNECTION_STRING=mongodb://mongodb:27017/
+      - MONGO_CONNECTION_STRING=mongodb://localhost:27017/
       - MONGO_DATABASE_NAME=spd_imoveis
-      - CHROMA_HOST=chromadb
+      - CHROMA_HOST=localhost
       - CHROMA_PORT=7777
       - CHROMA_COLLECTION_NAME=imoveis
-      - REDIS_URL=redis://redis:6379
+      - REDIS_URL=redis://localhost:6890
       - EMBEDDING_MODEL_NAME=all-MiniLM-L6-v2
-      - OLLAMA_URL=http://ollama:11434
+      - OLLAMA_URL=http://localhost:11434
       - DEBUG=true
     volumes:
       - ./chroma_db:/app/chroma_db
@@ -62,17 +61,12 @@ services:
       - mongodb
       - chromadb
       - redis
-      - ollama
+      - integrador
     restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8001/"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
 
-  worker:
+  integrador:
     build: .
-    container_name: spd_worker
+    container_name: spd_integrador
     environment:
       - MONGO_CONNECTION_STRING=mongodb://mongodb:27017/
       - MONGO_DATABASE_NAME=spd_imoveis
@@ -89,44 +83,20 @@ services:
       - chromadb
       - redis
     restart: unless-stopped
-    command: ["python", "single_worker.py"]
+    command: ["python", "integrador/src/main.py"]
 
   streamlit:
     build:
       context: .
       dockerfile: Dockerfile.streamlit
     container_name: spd_streamlit
-    ports:
-      - "8501:8501"
+    network_mode: host
     environment:
-      - API_BASE_URL=http://api:8001
+      - API_BASE_URL=http://localhost:8001
     depends_on:
       - api
     restart: unless-stopped
-
-  ollama:
-    image: ollama/ollama:latest
-    container_name: ollama_service
-    ports:
-      - "11435:11434"
-    volumes:
-      - ollama_data:/root/.ollama
-      - ./ollama-entrypoint-v2.sh:/entrypoint.sh
-    restart: unless-stopped
-    environment:
-      - OLLAMA_KEEP_ALIVE=5m
-      - OLLAMA_NUM_PARALLEL=1
-      - OLLAMA_MAX_LOADED_MODELS=1
-      - OLLAMA_NUM_GPU=0  
-    entrypoint: ["/bin/bash", "/entrypoint.sh"]
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:11434/api/tags"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-
 volumes:
   mongo_data:
   chroma_data:
   redis_data:
-  ollama_data:

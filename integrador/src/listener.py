@@ -12,15 +12,20 @@ from app.repositories.chroma_repository import ChromaRepository
 
 class RedisListener:
     def __init__(self):
-        self.redis = redis.Redis(host='localhost', port=6379, decode_responses=True)
+        redis_url = os.getenv("REDIS_URL", "redis://localhost:6379")
+        redis_host = redis_url.split("://")[1].split(":")[0]
+        redis_port = int(redis_url.split(":")[-1])
+        
+        self.redis = redis.Redis(host=redis_host, port=redis_port, decode_responses=True)
         self.pubsub = self.redis.pubsub()
         self.pubsub.subscribe('imoveis.create', 'imoveis.update', 'imoveis.delete')
 
-
-        MONGO_URI = "mongodb://localhost:27017/"
-        MONGO_DB_NAME = "spd_imoveis"
+        MONGO_URI = os.getenv("MONGO_CONNECTION_STRING", "mongodb://localhost:27017/")
+        MONGO_DB_NAME = os.getenv("MONGO_DATABASE_NAME", "spd_imoveis")
         self.mongo = MongoRepository(MONGO_URI, MONGO_DB_NAME)
-        self.chroma = ChromaRepository("./chroma_db")
+        
+        chroma_path = os.getenv("CHROMA_PATH", "./chroma_db")
+        self.chroma = ChromaRepository(chroma_path)
 
     def listen(self):
         print("⏳ Aguardando eventos Redis...")

@@ -8,7 +8,26 @@ from src.app.models import Imovel, ImovelInDB, PyObjectId
 from bson import ObjectId
 
 def load_imoveis_from_files():
-    imoveis_dir = Path("../anuncios_salvos")
+    # Buscar diretório anuncios_salvos em locais possíveis
+    possible_paths = [
+        Path("../anuncios_salvos"),  # Relativo ao projeto
+        Path("./anuncios_salvos"),   # No mesmo diretório
+        Path.home() / "SPD" / "anuncios_salvos",  # Home do usuário
+        Path(os.environ.get("ANUNCIOS_SALVOS_PATH", "")),  # Variável de ambiente
+    ]
+    
+    imoveis_dir = None
+    for path in possible_paths:
+        if path.exists() and path.is_dir():
+            imoveis_dir = path
+            break
+    
+    if not imoveis_dir:
+        raise FileNotFoundError(
+            "Diretório 'anuncios_salvos' não encontrado. "
+            "Verifique se existe em: ../anuncios_salvos, ./anuncios_salvos, "
+            "~/SPD/anuncios_salvos ou defina ANUNCIOS_SALVOS_PATH"
+        )
     imoveis = []
     
     for folder in imoveis_dir.iterdir():
@@ -39,8 +58,13 @@ def load_imoveis_from_files():
 
 def main():
     print("Carregando imóveis dos arquivos...")
-    imoveis = load_imoveis_from_files()
-    print(f"Encontrados {len(imoveis)} imóveis")
+    try:
+        imoveis = load_imoveis_from_files()
+        print(f"Encontrados {len(imoveis)} imóveis")
+    except FileNotFoundError as e:
+        print(f"❌ Erro: {e}")
+        print("💡 Dica: Coloque o diretório 'anuncios_salvos' em uma das localizações sugeridas")
+        return
     
     mongo_repo = get_mongo_repo()
     chroma_repo = get_chroma_repo()

@@ -137,3 +137,48 @@ def rerank_with_feedback(feedback: FeedbackRequest):
             "total_found": 0,
             "error": f"Erro no re-ranking: {str(e)}"
         }
+
+@router.delete("/search/clear")
+def clear_chroma_db():
+    """Limpa todos os dados do ChromaDB"""
+    try:
+        from ..repositories.chroma_repository import ChromaRepository
+        from ..config import CHROMA_HOST, CHROMA_PORT
+        
+        # Tenta usar ChromaDB via HTTP primeiro, depois local
+        try:
+            chroma_repo = ChromaRepository(host=CHROMA_HOST, port=CHROMA_PORT)
+        except:
+            chroma_repo = ChromaRepository(path="./chroma_db")
+        
+        # Conta documentos antes de limpar
+        try:
+            # Método para contar documentos existentes
+            result = chroma_repo.collection.query(
+                query_embeddings=[[0.0] * 384],  # Query dummy
+                n_results=1
+            )
+            count_antes = len(result.get('ids', []))
+        except:
+            count_antes = 0
+        
+        # Remove a collection e recria vazia
+        try:
+            chroma_repo.client.delete_collection(name="imoveis")
+        except:
+            pass  # Collection pode não existir
+        
+        # Recria a collection
+        chroma_repo.collection = chroma_repo.client.get_or_create_collection(name="imoveis")
+        
+        return {
+            "message": "ChromaDB limpo com sucesso",
+            "cleared_count": count_antes
+        }
+        
+    except Exception as e:
+        return {
+            "message": "Erro ao limpar ChromaDB",
+            "error": str(e),
+            "cleared_count": 0
+        }

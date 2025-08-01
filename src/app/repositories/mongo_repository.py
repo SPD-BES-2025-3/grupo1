@@ -2,6 +2,7 @@ from pymongo import MongoClient
 from bson import ObjectId
 from typing import List, Dict, Any
 from ..models import ImovelInDB
+from ..config import REDIS_URL
 import redis
 
 class MongoRepository:
@@ -11,7 +12,7 @@ class MongoRepository:
         self.collection = self.db.imoveis
         self.corretores_collection = self.db.corretores
         self.cidades_collection = self.db.cidades
-        self.redis = redis.Redis(host='localhost', port=6379, decode_responses=True)
+        self.redis = redis.from_url(REDIS_URL, decode_responses=True)
 
     def add_imovel(self, imovel: Dict[str, Any]) -> str:
         imovel_copy = imovel.copy()

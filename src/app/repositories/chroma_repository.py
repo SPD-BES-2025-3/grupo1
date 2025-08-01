@@ -3,8 +3,13 @@ from typing import List, Dict, Any
 from uuid import UUID
 
 class ChromaRepository:
-    def __init__(self, path: str = "./chroma_db"):
-        self.client = chromadb.PersistentClient(path=path)
+    def __init__(self, path: str = None, host: str = None, port: int = None):
+        if host and port:
+            # Usar ChromaDB via HTTP
+            self.client = chromadb.HttpClient(host=host, port=port)
+        else:
+            # Usar ChromaDB local
+            self.client = chromadb.PersistentClient(path=path or "./chroma_db")
         self.collection = self.client.get_or_create_collection(name="imoveis")
 
     def add_documents(self, ids: List[str], documents: List[str], metadatas: List[Dict[str, Any]]):
