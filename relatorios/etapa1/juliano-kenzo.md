@@ -20,3 +20,11 @@ Configurei serviços principais:
 * SearchService - busca semântica
 
 Todos os métodos foram integrados com MongoDB e banco de dados vetorial.
+
+**Entrega 2**
+
+Criei a classe MongoRepository, que gerencia automaticamente todas as operações CRUD para imóveis, corretores e cidades - incluindo a conversão entre ObjectIds e strings para maior compatibilidade.
+
+Implementei endpoints RESTful para cada entidade nos routers, garantindo validações robustas em criação, leitura, atualização e exclusão. Nos imóveis adicionei endpoints especializados para sincronização com o ChromaDB.
+
+Auxiliei na parte do search.py na busca semântica que transforma consultas em embeddings, pesquisa similaridades no ChromaDB e mantém um fallback para busca tradicional.

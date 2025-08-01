@@ -1,0 +1,74 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+venv/
+env/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+
+# Logs
+*.log
+worker.log
+api.log
+streamlit.log
+
+# Scripts de inicialização (não necessários no container)
+start_system.py
+stop_system.py
+
+# Docker
+Dockerfile
+.dockerignore
+docker-compose.yml
+
+# Documentação
+README.md
+Diagramas/
+relatorios/
+
+# Dados temporários (preservar volumes)
+chroma_db/
+models/
+
+# Testes locais
+test_*.py
