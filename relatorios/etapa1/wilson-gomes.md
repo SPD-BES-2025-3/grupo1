@@ -16,3 +16,15 @@ Aqui está o commit onde adicionei os arquivos da view [3d765e2](https://github.
 
 Tive pouco tempo para estudar sobre o tema e a linguagem, mas já foi o suficiente para me interessar sobre o assunto. Com certeza irei pesquisar mais sobre o tema e as suas 
 aplicações mesmo após a finalização da disciplina.
+
+## Entrega 31/07
+Continuei nas mesmas areas em que trabalhei inicialmente. Conforme foram surgindo novos requisitos, como a avaliação do usuário para o retorno da nossa busca, fui desenvolvendo a view e 
+aperfeicoando visualmente, já que a versão original não estava muito fácil interação.
+
+Todo esse processo foi importante, já que evolui os meus conhecimentos em Python (toda a view foi feita com Python) que era meu objetivo individual no projeto atualmente.
+
+Durante o seminário, fui responsável por fazer a introdução ao tema de bancos vetoriais, já que não foi algo estudado na disciplina e queriamos que todos os ouvintes estivessem situados no assunto,
+isso por si só foi um desafio já que inicialmente eu nem sabia da existência desse tipo de banco. Estudei muito sobre o tema e tentei dar uma introdução da forma mais simples possível para que todos
+entendessem o mínimo do que se tratava.
+
+Fiquei muito empolgado com o tema de bancos de dados vetoriais, e como citei na apresentação, pretendo fazer um TCC que envolva esse tipo de banco.
