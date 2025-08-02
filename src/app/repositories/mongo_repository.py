@@ -4,6 +4,7 @@ from typing import List, Dict, Any
 from ..models import ImovelInDB
 from ..config import REDIS_URL
 import redis
+import json
 
 class MongoRepository:
     def __init__(self, uri: str, db_name: str):
@@ -13,14 +14,31 @@ class MongoRepository:
         self.corretores_collection = self.db.corretores
         self.cidades_collection = self.db.cidades
         self.redis = redis.from_url(REDIS_URL, decode_responses=True)
+    
+    def _serialize_for_json(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """Converte ObjectIds para strings para serialização JSON"""
+        result = {}
+        for key, value in data.items():
+            if isinstance(value, ObjectId):
+                result[key] = str(value)
+            elif isinstance(value, dict):
+                result[key] = self._serialize_for_json(value)
+            elif isinstance(value, list):
+                result[key] = [str(item) if isinstance(item, ObjectId) else item for item in value]
+            else:
+                result[key] = value
+        return result
 
     def add_imovel(self, imovel: Dict[str, Any]) -> str:
         imovel_copy = imovel.copy()
         result = self.collection.insert_one(imovel_copy)
 
         if result.inserted_id:
-            # Publish the creation event to Redis
-            self.redis.publish('imoveis.create', str(result.inserted_id))
+            event_data = self._serialize_for_json({
+                "_id": result.inserted_id,
+                **imovel_copy
+            })
+            self.redis.publish('imoveis.create', json.dumps(event_data))
 
         return str(result.inserted_id)
 
@@ -40,13 +58,17 @@ class MongoRepository:
 
     def update_imovel(self, imovel_id: str, imovel: Dict[str, Any]):
         self.collection.update_one({"_id": ObjectId(imovel_id)}, {"$set": imovel})
-        # Publish the update event to Redis
-        self.redis.publish('imoveis.update', str(imovel_id))
+        event_data = self._serialize_for_json({
+            "_id": imovel_id,
+            **imovel
+        })
+        self.redis.publish('imoveis.update', json.dumps(event_data))
 
     def delete_imovel(self, imovel_id: str):
         self.collection.delete_one({"_id": ObjectId(imovel_id)})
-        # Publish the delete event to Redis
-        self.redis.publish('imoveis.delete', str(imovel_id))
+        import json
+        event_data = {"_id": str(imovel_id)}
+        self.redis.publish('imoveis.delete', json.dumps(event_data))
     
     def add_corretor(self, corretor: Dict[str, Any]) -> str:
         corretor_copy = corretor.copy()

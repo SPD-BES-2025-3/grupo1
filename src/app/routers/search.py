@@ -24,7 +24,9 @@ def search_imoveis(query: str = "casa com piscina", n_results: int = 30):
         from ..config import MONGO_URI, MONGO_DB_NAME
         
         mongo_repo = MongoRepository(uri=MONGO_URI, db_name=MONGO_DB_NAME)
-        chroma_repo = ChromaRepository(path="./chroma_db")
+        # Usar ChromaDB HTTP em vez de local
+        from ..config import CHROMA_HOST, CHROMA_PORT
+        chroma_repo = ChromaRepository(host=CHROMA_HOST, port=CHROMA_PORT)
         
         embedding_service = EmbeddingService()
         search_service = SearchService(
@@ -47,8 +49,8 @@ def search_imoveis(query: str = "casa com piscina", n_results: int = 30):
         from pymongo import MongoClient
         
         try:
-            client = MongoClient("mongodb://localhost:27017")
-            db = client["spd_imoveis"]
+            client = MongoClient(MONGO_URI)
+            db = client[MONGO_DB_NAME]
             collection = db["imoveis"]
             
             fallback_results = list(collection.find({

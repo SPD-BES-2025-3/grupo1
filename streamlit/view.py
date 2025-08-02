@@ -228,7 +228,7 @@ def main():
                                     selected_results = rerank_result.get('reranked_results', [])
                                     
                                     if selected_results:
-                                        refined_text = f"🤖 **IA analisou seus gostos e SELECIONOU {len(selected_results)} imóveis dos 5 restantes:**\n\n"
+                                        refined_text = f"🤖 **IA analisou seus gostos e SELECIONOU {len(selected_results)} imóveis dos restantes:**\n\n"
                                         
                                         for i, imovel in enumerate(selected_results, 1):
                                             refined_text += f"**{i}. {imovel.get('titulo', 'Sem título')}**\n"

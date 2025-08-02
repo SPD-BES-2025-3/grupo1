@@ -18,9 +18,7 @@ class LLMRerankingService:
         self.model = "gemma3:4b"  # Modelo mais moderno e eficiente para JSON estruturado
         self.ollama_enabled = True  # Sempre tentar usar o Ollama
         
-        # Importar aqui para evitar dependência circular
-        from .ollama_health_service import OllamaHealthService
-        self.ollama_health = OllamaHealthService()
+        # Ollama agora roda em container Docker, não precisamos do health service local
     
     def rerank_properties(
         self, 
@@ -61,14 +59,7 @@ class LLMRerankingService:
                 "selected_properties": self._fallback_ranking(liked_properties, remaining_properties)
             }
         
-        # Tentar iniciar Ollama se não estiver rodando
-        if not self.ollama_health.start_ollama_if_needed():
-            logger.warning("Ollama não pôde ser iniciado, usando fallback")
-            return {
-                "decision_reasoning": "Ollama indisponível - usando seleção automática",
-                "should_show_more": True,
-                "selected_properties": self._fallback_ranking(liked_properties, remaining_properties)
-            }
+        # Ollama roda em container, não precisamos iniciar localmente
         
         try:
             prompt = self._build_prompt(query, liked_properties, disliked_properties, remaining_properties)

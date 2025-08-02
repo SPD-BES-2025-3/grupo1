@@ -2,16 +2,16 @@
 
 Um sistema completo de busca semântica de imóveis com reranking inteligente baseado em LLM, desenvolvido com FastAPI, Streamlit e ChromaDB.
 
-## 🎯 Características Principais
+## Características Principais
 
-- **🔍 Busca Semântica**: Encontre imóveis usando linguagem natural
-- **🤖 Reranking Inteligente**: IA analisa suas preferências com Gemma3 4B
-- **📊 Interface Moderna**: Dashboard intuitivo em Streamlit
-- **⚡ Performance**: Vectorização com ChromaDB + embeddings otimizados
-- **🐳 Containerização**: Deploy simplificado com Docker
-- **🔄 Integração**: API REST completa com documentação automática
+- **Busca Semântica**: Encontre imóveis usando linguagem natural
+- **Reranking Inteligente**: IA analisa suas preferências com Gemma3 4B
+- **Interface Moderna**: Dashboard intuitivo em Streamlit
+- **Performance**: Vectorização com ChromaDB + embeddings otimizados
+- **Containerização**: Deploy simplificado com Docker
+- **Integração**: API REST completa com documentação automática
 
-## 🏗️ Arquitetura do Sistema
+## Arquitetura do Sistema
 
 ```
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
@@ -26,11 +26,11 @@ Um sistema completo de busca semântica de imóveis com reranking inteligente ba
 └─────────────────┘    └─────────────────┘    └─────────────────┘
 ```
 
-## 🚀 Tecnologias Utilizadas
+## Tecnologias Utilizadas
 
 ### Backend
 - **FastAPI**: Framework web moderno e rápido
-- **Python 3.11**: Linguagem principal
+- **Python**: Linguagem principal
 - **ChromaDB**: Banco de dados vetorial para busca semântica
 - **MongoDB**: Armazenamento de dados estruturados
 - **Redis**: Cache e fila de tarefas
@@ -44,35 +44,61 @@ Um sistema completo de busca semântica de imóveis com reranking inteligente ba
 
 ### Frontend
 - **Streamlit**: Interface web interativa
-- **Plotly**: Visualizações e gráficos
-- **Bootstrap**: Componentes UI responsivos
 
 ### DevOps
 - **Docker**: Containerização
 - **Docker Compose**: Orquestração de serviços
-- **GitHub Actions**: CI/CD (configurável)
 
-## 📋 Pré-requisitos
+## Pré-requisitos
 
 - **Docker** e **Docker Compose** instalados
-- **8GB RAM** disponível (6GB para Gemma3 4B + 2GB sistema)
+- **Memória RAM necessária:**
+  - **Mínimo absoluto**: 8GB RAM total do sistema
+  - **Recomendado**: 12GB RAM ou mais
+  - **Para Gemma3 4B**: Requer 5.4GB RAM disponível + overhead do sistema
 - **5GB espaço em disco** (modelo + dados)
-- **Ollama instalado localmente** com Gemma3 4B
+- **Importante**: O modelo Gemma3 4B precisa de pelo menos 6GB de RAM livre para funcionar corretamente
 
-### Instalação do Ollama Local
+### Nota sobre Requisitos de Memória
+
+**Status do Reranking IA:**
+- **Ollama Container**: Funcionando corretamente
+- **Gemma3:4b**: Modelo baixado e disponível
+- **Limitação Atual**: Requer 5.4GB RAM (sistema atual: 2.6GB disponível)
+
+**Opções para Ambientes com Pouca RAM:**
+- `tinyllama` (637MB) - Funciona bem com 2GB RAM
+- `phi` (1.6GB) - Funciona bem com 4GB RAM  
+- `mistral:7b-instruct` (4.1GB) - Funciona bem com 6GB RAM
 
 ```bash
-# Instalar Ollama
-curl -fsSL https://ollama.ai/install.sh | sh
-
-# Baixar Gemma3 4B
-ollama pull gemma3:4b
-
-# Verificar instalação
-ollama list
+Para usar modelo menor:
+docker exec spd_ollama ollama pull tinyllama
+Depois atualizar OLLAMA_MODEL_NAME=tinyllama no .env
 ```
 
-## 🛠️ Instalação e Configuração
+**Funcionalidades Disponíveis SEM Reranking:**
+- Busca semântica completa e funcional
+- Ordenação por similarity score
+- Filtros e consultas complexas
+- CRUD completo de imóveis
+
+### Configuração do Ollama no Docker
+
+O sistema já inclui Ollama em container Docker. O setup.sh:
+1. Para qualquer Ollama local rodando
+2. Inicia o container Ollama
+3. Baixa o modelo automaticamente
+
+```bash
+Para verificar uso de memória
+docker stats spd_ollama
+
+Para usar um modelo menor se necessário
+docker exec spd_ollama ollama pull tinyllama
+```
+
+## Instalação e Configuração
 
 ### 1. Clone o Repositório
 
@@ -112,25 +138,28 @@ anuncios_salvos/
 ### 4. Inicializar Sistema
 
 ```bash
-# Subir todos os serviços
-docker-compose up -d
+Método recomendado - Script automatizado
+./setup.sh
 
-# Aguardar inicialização (30-60 segundos)
+Ou manualmente:
+docker compose up -d
 
-# Carregar dados e testar
-python init_and_test_system.py
+Aguardar inicialização (30-60 segundos)
+
+Carregar dados
+python docker_seed.py
 ```
 
-## 🌐 Acesso ao Sistema
+## Acesso ao Sistema
 
 | Serviço | URL | Descrição |
 |---------|-----|-----------|
-| 🖥️ **Interface Principal** | http://localhost:8501 | Dashboard Streamlit |
-| 📚 **API Documentation** | http://localhost:8001/docs | Swagger/OpenAPI |
-| 🔍 **API Endpoint** | http://localhost:8001/search | Busca semântica |
-| 🤖 **Ollama Local** | http://localhost:11434 | Servidor LLM |
+| **Interface Principal** | http://localhost:8501 | Dashboard Streamlit |
+| **API Documentation** | http://localhost:8001/docs | Swagger/OpenAPI |
+| **API Endpoint** | http://localhost:8001/search | Busca semântica |
+| **Ollama Container** | http://localhost:11434 | Servidor LLM |
 
-## 💡 Como Usar
+## Como Usar
 
 ### 1. Busca Básica
 
@@ -141,7 +170,7 @@ python init_and_test_system.py
 ### 2. Reranking Inteligente
 
 1. Faça uma busca inicial
-2. Clique em ❤️ (gostei) ou ❌ (não gostei) nos imóveis
+2. Clique em (gostei) ou (não gostei) nos imóveis
 3. O sistema aprende suas preferências
 4. Receba sugestões personalizadas com IA
 
@@ -162,7 +191,7 @@ curl -X POST "http://localhost:8001/rerank/" \
   }'
 ```
 
-## 🧠 Funcionamento da IA
+## Funcionamento da IA
 
 ### Busca Semântica
 1. **Entrada**: Query em linguagem natural
@@ -201,28 +230,41 @@ OLLAMA_NUM_GPU=1  # Para usar GPU
 - **Cache**: Redis otimiza consultas repetidas
 - **Embedding**: Modelo pré-treinado para português
 
-## 🐛 Troubleshooting
+## Troubleshooting
 
 ### Problemas Comuns
 
-**❌ "Erro de conexão com API"**
+**"Erro de conexão com API"**
 ```bash
 # Verificar se API está rodando
 curl http://localhost:8001/
 docker logs api -f
 ```
 
-**❌ "Parse da resposta LLM falhou"**
+**"Parse da resposta LLM falhou"**
 ```bash
 # Verificar se Ollama está ativo
 ollama list
 curl http://localhost:11434/api/tags
 ```
 
-**❌ "anuncios_salvos não encontrado"**
+**"anuncios_salvos não encontrado"**
 ```bash
 # Definir path manualmente
 export ANUNCIOS_SALVOS_PATH="/seu/caminho"
+```
+
+**"Collection does not exists" no integrador**
+```bash
+# Problema comum após reinicializações - eventos antigos no Redis
+# Soluções:
+# 1. Aguardar - integrador processa eventos antigos e chega nos novos
+# 2. Limpar fila Redis:
+docker exec redis_broker redis-cli FLUSHALL
+
+# 3. Verificar se sincronização funciona com teste:
+curl -X POST "http://localhost:8001/imoveis/" -H "Content-Type: application/json" \
+  -d '{"titulo": "Teste", "descricao": "Teste sincronização", "especificacoes": []}'
 ```
 
 ### Logs e Debug
@@ -239,20 +281,56 @@ docker logs spd_streamlit -f
 export DEBUG=true
 ```
 
-## 📊 Métricas e Monitoramento
+## Sincronização Assíncrona
 
-- **Tempo de Resposta**: < 200ms para buscas
-- **Acurácia**: Similarity score > 0.7
-- **Throughput**: 100+ consultas/minuto
-- **Cache Hit Rate**: 80%+ com Redis
+O sistema mantém MongoDB e ChromaDB sincronizados automaticamente:
 
-## 🤝 Contribuição
+### Fluxo de Sincronização
+```
+MongoDB → Redis (eventos) → Integrador → ChromaDB
+```
 
-1. Fork o projeto
-2. Crie uma branch: `git checkout -b feature/nova-funcionalidade`
-3. Commit: `git commit -m 'Add nova funcionalidade'`
-4. Push: `git push origin feature/nova-funcionalidade`
-5. Abra Pull Request
+### Como Funciona
+1. **Criar/Atualizar/Deletar** imóvel via API
+2. **Evento publicado** no Redis (canal: imoveis.create/update/delete)  
+3. **Integrador escuta** e processa eventos
+4. **Embedding gerado** (para create/update)
+5. **ChromaDB atualizado** automaticamente
 
+### Verificar Sincronização
+```bash
+# Criar imóvel teste
+curl -X POST "http://localhost:8001/imoveis/" -H "Content-Type: application/json" \
+  -d '{"titulo": "Teste Sync", "descricao": "Verificação", "especificacoes": []}'
 
-**🏠 SPD Imóveis** - Encontre seu imóvel ideal com inteligência artificial
+# Verificar logs do integrador
+docker logs spd_integrador --tail 5
+
+# Sincronização manual (se necessário)
+curl -X POST "http://localhost:8001/imoveis/sync"
+```
+
+## Status do Sistema e Métricas
+
+### **Sistema Totalmente Operacional** (Atualizado: 01/08/2025)
+
+**Componentes Funcionais:**
+- **Busca Semântica**: ChromaDB + embeddings 384D persistindo corretamente
+- **CRUD Imóveis**: Criação, atualização, deleção funcionando
+- **Sincronização**: MongoDB → Redis → Integrador → ChromaDB em tempo real
+- **API REST**: Todos os endpoints operacionais
+- **Embeddings**: Sentence Transformers all-MiniLM-L6-v2 (384 dimensões)
+- **Reranking IA**: Limitado por RAM (Gemma3 4B requer 5.4GB)
+
+**Métricas de Performance:**
+- **Tempo de Resposta**: 2-3s para buscas semânticas
+- **Acurácia**: Similarity scores variando de -0.8 a +0.4
+- **Throughput**: 30+ consultas/minuto testadas
+- **Sincronização**: < 5s entre criação e indexação
+- **Embeddings**: 100% de persistência confirmada
+
+**Testes Validados:**
+- Múltiplos imóveis indexados simultaneamente
+- Busca semântica com ordenação por relevância
+- Atualização de embeddings em tempo real
+- Remoção limpa do ChromaDB na deleção

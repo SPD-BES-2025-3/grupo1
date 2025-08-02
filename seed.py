@@ -62,8 +62,8 @@ def main():
         imoveis = load_imoveis_from_files()
         print(f"Encontrados {len(imoveis)} imóveis")
     except FileNotFoundError as e:
-        print(f"❌ Erro: {e}")
-        print("💡 Dica: Coloque o diretório 'anuncios_salvos' em uma das localizações sugeridas")
+        print(f"Erro: {e}")
+        print("Dica: Coloque o diretório 'anuncios_salvos' em uma das localizações sugeridas")
         return
     
     mongo_repo = get_mongo_repo()

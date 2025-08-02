@@ -2,7 +2,6 @@ from fastapi import APIRouter, Depends, HTTPException
 from typing import List
 from ..models import Imovel, ImovelInDB
 from ..database import get_mongo_repo, get_chroma_repo
-from ..services.indexing_service import IndexingService
 from ..services.embedding_service import EmbeddingService
 from ..config import REDIS_URL
 import redis
@@ -20,7 +19,9 @@ def sync_single_imovel(imovel_id: str):
         from bson import ObjectId
         
         mongo_repo = MongoRepository(uri=MONGO_URI, db_name=MONGO_DB_NAME)
-        chroma_repo = ChromaRepository(path="./chroma_db")
+        # Usar ChromaDB HTTP em vez de local
+        from ..config import CHROMA_HOST, CHROMA_PORT
+        chroma_repo = ChromaRepository(host=CHROMA_HOST, port=CHROMA_PORT)
         
         imovel_data = mongo_repo.get_imovel_by_id(imovel_id)
         if not imovel_data:
@@ -34,9 +35,19 @@ def sync_single_imovel(imovel_id: str):
             especificacoes=imovel_data.get("especificacoes", [])
         )
 
+        # Indexar diretamente sem IndexingService
         embedding_service = EmbeddingService()
-        indexing_service = IndexingService(embedding_service=embedding_service, chroma_repo=chroma_repo)
-        indexing_service.index_single_imovel(imovel)
+        content = f"{imovel.titulo} {imovel.descricao} {' '.join(imovel.especificacoes)}"
+        embeddings = embedding_service.create_embeddings([content])
+        
+        metadata = {
+            "id": str(imovel.id),
+            "titulo": imovel.titulo,
+            "descricao": imovel.descricao,
+            "especificacoes": " | ".join(imovel.especificacoes)
+        }
+        
+        chroma_repo.upsert_documents([str(imovel.id)], [content], [metadata], embeddings)
         
         return {
             "message": f"Imóvel {imovel_id} sincronizado com sucesso",
@@ -57,7 +68,9 @@ def sync_mongo_to_chroma():
         from bson import ObjectId
         
         mongo_repo = MongoRepository(uri=MONGO_URI, db_name=MONGO_DB_NAME)
-        chroma_repo = ChromaRepository(path="./chroma_db")
+        # Usar ChromaDB HTTP em vez de local
+        from ..config import CHROMA_HOST, CHROMA_PORT
+        chroma_repo = ChromaRepository(host=CHROMA_HOST, port=CHROMA_PORT)
         
         imoveis_data = mongo_repo.get_all_imoveis()
         
@@ -80,12 +93,22 @@ def sync_mongo_to_chroma():
                 continue
         
         embedding_service = EmbeddingService()
-        indexing_service = IndexingService(embedding_service=embedding_service, chroma_repo=chroma_repo)
         
         synced_count = 0
         for imovel in imoveis:
             try:
-                indexing_service.index_single_imovel(imovel)
+                # Indexar diretamente sem IndexingService
+                content = f"{imovel.titulo} {imovel.descricao} {' '.join(imovel.especificacoes)}"
+                embeddings = embedding_service.create_embeddings([content])
+                
+                metadata = {
+                    "id": str(imovel.id),
+                    "titulo": imovel.titulo,
+                    "descricao": imovel.descricao,
+                    "especificacoes": " | ".join(imovel.especificacoes)
+                }
+                
+                chroma_repo.upsert_documents([str(imovel.id)], [content], [metadata], embeddings)
                 synced_count += 1
             except Exception as e:
                 print(f"Erro ao indexar imóvel {imovel.id}: {e}")
@@ -106,18 +129,12 @@ def create_imovel(imovel: Imovel):
     from ..config import MONGO_URI, MONGO_DB_NAME
     
     mongo_repo = MongoRepository(uri=MONGO_URI, db_name=MONGO_DB_NAME)
-    imovel_dict = imovel.model_dump()
+    imovel_dict = imovel.dict()
     imovel_id = mongo_repo.add_imovel(imovel_dict) 
     
-    # Publish to Redis
-    r = redis.from_url(REDIS_URL)
-    r.publish("imoveis.create", json.dumps({
-        "_id": imovel_id,
-        "descricao": imovel_dict["descricao"],
-        **imovel_dict
-    }))
+    # Redis publish é feito pelo MongoRepository
     
-    return {**imovel_dict, "id": imovel_id}
+    return {**imovel_dict, "id": str(imovel_id)}
 
 @router.get("/imoveis/")
 def read_imoveis():
@@ -149,18 +166,12 @@ def update_imovel(imovel_id: str, imovel: Imovel):
     if db_imovel is None:
         raise HTTPException(status_code=404, detail="Imovel not found")
     
-    imovel_dict = imovel.model_dump()
+    imovel_dict = imovel.dict()
     mongo_repo.update_imovel(imovel_id, imovel_dict)
     
-    # Publish to Redis
-    r = redis.from_url(REDIS_URL)
-    r.publish("imoveis.update", json.dumps({
-        "_id": imovel_id,
-        "descricao": imovel_dict["descricao"],
-        **imovel_dict
-    }))
+    # Redis publish é feito pelo MongoRepository
     
-    return {**imovel_dict, "id": imovel_id}
+    return {**imovel_dict, "id": str(imovel_id)}
 
 @router.delete("/imoveis/all")
 def delete_all_imoveis():
@@ -202,10 +213,6 @@ def delete_imovel(imovel_id: str):
     
     mongo_repo.delete_imovel(imovel_id)
     
-    # Publish to Redis
-    r = redis.from_url(REDIS_URL)
-    r.publish("imoveis.delete", json.dumps({
-        "_id": imovel_id
-    }))
+    # Redis publish é feito pelo MongoRepository
     
     return {"message": "Imovel deleted successfully", "id": imovel_id}
