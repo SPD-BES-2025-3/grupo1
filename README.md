@@ -148,6 +148,10 @@ Aguardar inicialização (30-60 segundos)
 
 Carregar dados
 python docker_seed.py
+
+# IMPORTANTE: Após primeira inicialização
+# Se logs do integrador mostrarem "Collection does not exist":
+docker restart spd_integrador
 ```
 
 ## Acesso ao Sistema
@@ -256,8 +260,16 @@ export ANUNCIOS_SALVOS_PATH="/seu/caminho"
 
 **"Collection does not exists" no integrador**
 ```bash
-# Problema comum após reinicializações - eventos antigos no Redis
-# Soluções:
+# PROBLEMA COMUM na primeira inicialização ou após reinicializações
+# O integrador mantém referência a uma coleção ChromaDB antiga que foi deletada
+
+# SOLUÇÃO RÁPIDA (Recomendada):
+docker restart spd_integrador
+
+# Aguardar 10-15 segundos e verificar logs:
+docker logs spd_integrador --tail 10
+
+# Se ainda persistir, soluções alternativas:
 # 1. Aguardar - integrador processa eventos antigos e chega nos novos
 # 2. Limpar fila Redis:
 docker exec redis_broker redis-cli FLUSHALL

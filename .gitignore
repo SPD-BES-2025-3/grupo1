@@ -26,15 +26,6 @@ replay_pid*
 # MELHORIAS PARA PROJETOS PYTHON E DADOS GRANDES
 ###########################################################
 
-# Ignorar pasta de dados e imagens
-anuncios_salvos/
-*.jpg
-*.jpeg
-*.png
-*.gif
-*.bmp
-*.tiff
-*.svg
 
 # Ignorar arquivos Python compilados e cache
 __pycache__/
@@ -64,6 +55,5 @@ coverage.xml
 *.swp
 *.bak
 *.tmp
-models/
-chroma_db/
 *.log
+

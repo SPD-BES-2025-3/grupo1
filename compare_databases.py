@@ -193,7 +193,7 @@ def main():
     # ═══════════════════════════════════════════════════════
     # 🔧 CONFIGURAÇÃO: Modifique o ID aqui para comparar
     # ═══════════════════════════════════════════════════════
-    IMOVEL_ID = "688e2c8c8f1b9125f01fc58f"  # ID do imóvel final de teste (pós reconstrução)
+    IMOVEL_ID = "688e756d219434d7d66ad6be"  # ID do imóvel final de teste (pós reconstrução), sempre lembrar de alterar 
     
     print(f"🔍 Usando ID específico: {IMOVEL_ID}")
     
