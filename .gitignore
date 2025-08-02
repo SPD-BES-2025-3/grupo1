@@ -57,3 +57,5 @@ coverage.xml
 *.tmp
 *.log
 
+models/
+anuncios_salvos/
