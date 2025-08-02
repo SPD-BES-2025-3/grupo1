@@ -8,21 +8,18 @@ logger = logging.getLogger(__name__)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup
-    logger.info("🚀 Iniciando SPD Imóveis API...")
+    logger.info("Iniciando SPD Imóveis API...")
     
-    # Verificar e iniciar Ollama se necessário
     ollama_service = OllamaHealthService()
     if not ollama_service.start_ollama_if_needed():
-        logger.warning("⚠️ Ollama não pôde ser iniciado - funcionalidades de LLM podem não funcionar")
+        logger.warning("Ollama não pôde ser iniciado - funcionalidades de LLM podem não funcionar")
     else:
         status = ollama_service.get_ollama_status()
-        logger.info(f"✅ Ollama configurado: {status['models']}")
+        logger.info(f"Ollama configurado: {status['models']}")
     
     yield
     
-    # Shutdown
-    logger.info("🛑 Finalizando SPD Imóveis API...")
+    logger.info("Finalizando SPD Imóveis API...")
 
 app = FastAPI(
     title="SPD Imóveis API", 

@@ -14,7 +14,9 @@ services:
       retries: 3
 
   chromadb:
-    image: chromadb/chroma:latest
+    build:
+      context: .
+      dockerfile: Dockerfile.chromadb
     container_name: chroma_db
     ports:
       - "7777:7777"
@@ -40,27 +42,47 @@ services:
       timeout: 10s
       retries: 3
 
+  ollama:
+    image: ollama/ollama:latest
+    container_name: spd_ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    environment:
+      - OLLAMA_HOST=0.0.0.0
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11434/api/tags"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
   api:
     build: .
     container_name: spd_api
-    network_mode: host
+    ports:
+      - "8001:8001"
     environment:
-      - MONGO_CONNECTION_STRING=mongodb://localhost:27017/
+      - MONGO_CONNECTION_STRING=mongodb://mongodb:27017/
       - MONGO_DATABASE_NAME=spd_imoveis
-      - CHROMA_HOST=localhost
+      - CHROMA_HOST=chromadb
       - CHROMA_PORT=7777
       - CHROMA_COLLECTION_NAME=imoveis
-      - REDIS_URL=redis://localhost:6890
+      - REDIS_URL=redis://redis:6379
       - EMBEDDING_MODEL_NAME=all-MiniLM-L6-v2
-      - OLLAMA_URL=http://localhost:11434
+      - OLLAMA_URL=http://ollama:11434
       - DEBUG=true
     volumes:
       - ./chroma_db:/app/chroma_db
       - ./models:/app/models
+      - chroma_cache:/root/.cache/chroma
     depends_on:
       - mongodb
       - chromadb
       - redis
+      - ollama
       - integrador
     restart: unless-stopped
 
@@ -90,9 +112,10 @@ services:
       context: .
       dockerfile: Dockerfile.streamlit
     container_name: spd_streamlit
-    network_mode: host
+    ports:
+      - "8501:8501"
     environment:
-      - API_BASE_URL=http://localhost:8001
+      - API_BASE_URL=http://api:8001
     depends_on:
       - api
     restart: unless-stopped
@@ -100,3 +123,5 @@ volumes:
   mongo_data:
   chroma_data:
   redis_data:
+  chroma_cache:
+  ollama_data:

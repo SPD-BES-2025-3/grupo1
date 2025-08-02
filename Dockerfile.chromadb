@@ -1,0 +1,12 @@
+FROM chromadb/chroma:0.4.18
+
+USER root
+
+RUN pip install --upgrade pip && \
+    pip uninstall -y numpy && \
+    pip install "numpy>=1.24.0,<2.0.0"
+
+
+EXPOSE 7777
+
+CMD ["uvicorn", "chromadb.app:app", "--reload", "--workers", "1", "--host", "0.0.0.0", "--port", "7777", "--log-config", "chromadb/log_config.yml", "--timeout-keep-alive", "30"]

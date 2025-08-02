@@ -11,20 +11,25 @@ import time
 def wait_for_api():
     """Aguarda a API ficar disponível"""
     print("🔍 Aguardando API ficar disponível...")
-    max_retries = 30
+    max_retries = 60  # Aumentado para 60 tentativas (2 minutos)
     for i in range(max_retries):
         try:
             response = requests.get("http://localhost:8001/", timeout=5)
             if response.status_code == 200:
-                print("✅ API disponível!")
+                print("API disponível!")
+                print("Aguardando API estabilizar...")
+                time.sleep(5)
                 return True
-        except requests.exceptions.RequestException:
-            pass
+        except requests.exceptions.RequestException as e:
+            if i == 0:
+                print(f"Detalhes: {e}")
         
         print(f"⏳ Tentativa {i+1}/{max_retries}...")
         time.sleep(2)
     
-    print("❌ API não ficou disponível")
+    print("API não ficou disponível")
+    print("Dica: Verifique se os containers estão rodando com 'docker ps'")
+    print("Veja os logs com 'docker logs spd_api'")
     return False
 
 def load_imoveis_from_files():
@@ -69,39 +74,39 @@ def load_imoveis_from_files():
                     imoveis.append(imovel)
                     
                 except Exception as e:
-                    print(f"❌ Erro ao processar {info_file}: {e}")
+                    print(f"Erro ao processar {info_file}: {e}")
     
     return imoveis
 
 def clear_existing_data():
     """Limpa dados existentes no MongoDB e ChromaDB"""
-    print("🧹 Limpando dados existentes...")
+    print("Limpando dados existentes...")
     
     try:
         # Limpar MongoDB
         response = requests.delete("http://localhost:8001/imoveis/all", timeout=30)
         if response.status_code in [200, 204]:
-            print("✅ MongoDB limpo")
+            print("MongoDB limpo")
         else:
-            print(f"⚠️  Aviso: Não foi possível limpar MongoDB (status: {response.status_code})")
+            print(f"Aviso: Não foi possível limpar MongoDB (status: {response.status_code})")
         
         # Limpar ChromaDB 
         response = requests.delete("http://localhost:8001/search/clear", timeout=30)
         if response.status_code in [200, 204]:
-            print("✅ ChromaDB limpo")
+            print("ChromaDB limpo")
         else:
-            print(f"⚠️  Aviso: Não foi possível limpar ChromaDB (status: {response.status_code})")
+            print(f"Aviso: Não foi possível limpar ChromaDB (status: {response.status_code})")
             
-        print("✅ Limpeza concluída")
+        print("Limpeza concluída")
         return True
         
     except requests.exceptions.RequestException as e:
-        print(f"⚠️  Aviso: Erro na limpeza: {e} (continuando...)")
+        print(f"Aviso: Erro na limpeza: {e} (continuando...)")
         return True  # Continua mesmo se a limpeza falhar
 
 def load_data_via_api():
     """Carrega dados usando API diretamente"""
-    print("📊 Carregando imóveis via API...")
+    print("Carregando imóveis via API...")
     
     # Limpar dados existentes primeiro
     if not clear_existing_data():
@@ -109,9 +114,9 @@ def load_data_via_api():
     
     try:
         imoveis = load_imoveis_from_files()
-        print(f"✅ Encontrados {len(imoveis)} imóveis para carregar")
+        print(f"Encontrados {len(imoveis)} imóveis para carregar")
     except FileNotFoundError as e:
-        print(f"❌ {e}")
+        print(f"{e}")
         return False
     
     # Carregar dados via API
@@ -129,19 +134,19 @@ def load_data_via_api():
             if response.status_code in [200, 201]:
                 success_count += 1
                 if i % 20 == 0:  # Log a cada 20 imóveis
-                    print(f"📈 Processados: {i}/{len(imoveis)}")
+                    print(f"Processados: {i}/{len(imoveis)}")
             else:
                 error_count += 1
-                print(f"⚠️  Erro no imóvel {i}: {response.status_code}")
+                print(f"Erro no imóvel {i}: {response.status_code}")
                 
         except requests.exceptions.RequestException as e:
             error_count += 1
-            print(f"❌ Erro na requisição {i}: {e}")
+            print(f"Erro na requisição {i}: {e}")
     
-    print(f"\n🎉 Processamento concluído!")
-    print(f"✅ Sucessos: {success_count}")
-    print(f"❌ Erros: {error_count}")
-    print(f"📊 Total: {len(imoveis)}")
+    print(f"\nProcessamento concluído!")
+    print(f"Sucessos: {success_count}")
+    print(f"Erros: {error_count}")
+    print(f"Total: {len(imoveis)}")
     
     return success_count > 0
 
